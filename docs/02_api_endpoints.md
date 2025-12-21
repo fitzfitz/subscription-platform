@@ -30,12 +30,14 @@ Retrieve the current subscription for a user within your product.
 **Endpoint**: `GET /subscriptions/:userId`
 
 **Request**:
+
 ```http
 GET /subscriptions/user_2abc123def
 X-API-Key: al_prod_key_123456
 ```
 
 **Response** (200 OK):
+
 ```json
 {
   "id": "sub_xyz789",
@@ -58,6 +60,7 @@ X-API-Key: al_prod_key_123456
 ```
 
 **Response** (404 Not Found):
+
 ```json
 {
   "error": "No active subscription found",
@@ -76,12 +79,14 @@ Get all active pricing plans for your product.
 **Endpoint**: `GET /plans`
 
 **Request**:
+
 ```http
 GET /plans
 X-API-Key: al_prod_key_123456
 ```
 
 **Response** (200 OK):
+
 ```json
 [
   {
@@ -118,6 +123,7 @@ Submit a subscription upgrade with proof of payment.
 **Endpoint**: `POST /subscriptions/:userId/upgrade`
 
 **Request**:
+
 ```http
 POST /subscriptions/user_2abc123def/upgrade
 X-API-Key: al_prod_key_123456
@@ -131,6 +137,7 @@ Content-Type: application/json
 ```
 
 **Response** (200 OK):
+
 ```json
 {
   "id": "sub_xyz789",
@@ -145,6 +152,7 @@ Content-Type: application/json
 ```
 
 **Response** (400 Bad Request):
+
 ```json
 {
   "error": "Invalid plan",
@@ -153,6 +161,7 @@ Content-Type: application/json
 ```
 
 **Flow**:
+
 1. User uploads receipt via `/upload` endpoint
 2. Frontend calls this endpoint with the receipt URL
 3. Subscription status set to `pending_verification`
@@ -167,12 +176,14 @@ Get all subscriptions awaiting approval (admin only).
 **Endpoint**: `GET /admin/pending`
 
 **Request**:
+
 ```http
 GET /admin/pending
 X-API-Key: admin_master_key_789
 ```
 
 **Response** (200 OK):
+
 ```json
 [
   {
@@ -208,6 +219,7 @@ Approve or reject a pending subscription.
 **Endpoint**: `POST /admin/verify`
 
 **Request** (Approve):
+
 ```http
 POST /admin/verify
 X-API-Key: admin_master_key_789
@@ -220,6 +232,7 @@ Content-Type: application/json
 ```
 
 **Request** (Reject):
+
 ```http
 POST /admin/verify
 X-API-Key: admin_master_key_789
@@ -232,6 +245,7 @@ Content-Type: application/json
 ```
 
 **Response** (200 OK):
+
 ```json
 {
   "id": "sub_xyz789",
@@ -242,6 +256,7 @@ Content-Type: application/json
 ```
 
 **Effect**:
+
 - **Approve**: Status → `active`, `startDate` set to now
 - **Reject**: Status → `canceled`, user notified
 
@@ -250,6 +265,7 @@ Content-Type: application/json
 ## Error Responses
 
 ### 401 Unauthorized
+
 ```json
 {
   "error": "Unauthorized",
@@ -262,6 +278,7 @@ Content-Type: application/json
 ---
 
 ### 403 Forbidden
+
 ```json
 {
   "error": "Forbidden",
@@ -274,6 +291,7 @@ Content-Type: application/json
 ---
 
 ### 429 Too Many Requests
+
 ```json
 {
   "error": "Rate limit exceeded",
@@ -288,6 +306,7 @@ Content-Type: application/json
 ## Rate Limits
 
 Per product API key:
+
 - **Standard Endpoints**: 100 requests/minute
 - **Admin Endpoints**: 1000 requests/minute
 
@@ -301,25 +320,22 @@ Limits reset every 60 seconds.
 
 ```typescript
 // After Clerk authentication
-const { userId } = useAuth();
+const { userId } = useAuth()
 
 const fetchSubscription = async () => {
-  const response = await fetch(
-    `https://subscriptions.yourdomain.com/subscriptions/${userId}`,
-    {
-      headers: {
-        'X-API-Key': import.meta.env.VITE_SUBSCRIPTION_API_KEY,
-      },
-    }
-  );
-  
+  const response = await fetch(`https://subscriptions.yourdomain.com/subscriptions/${userId}`, {
+    headers: {
+      'X-API-Key': import.meta.env.VITE_SUBSCRIPTION_API_KEY,
+    },
+  })
+
   if (!response.ok) {
     // User has no subscription, show free plan
-    return null;
+    return null
   }
-  
-  return response.json();
-};
+
+  return response.json()
+}
 ```
 
 ### Backend (Hono)
@@ -327,27 +343,24 @@ const fetchSubscription = async () => {
 ```typescript
 // Feature gating middleware
 const requirePro = async (c, next) => {
-  const userId = c.get('userId');
-  
-  const response = await fetch(
-    `https://subscriptions.yourdomain.com/subscriptions/${userId}`,
-    {
-      headers: {
-        'X-API-Key': process.env.SUBSCRIPTION_API_KEY,
-      },
-    }
-  );
-  
-  const subscription = await response.json();
-  
+  const userId = c.get('userId')
+
+  const response = await fetch(`https://subscriptions.yourdomain.com/subscriptions/${userId}`, {
+    headers: {
+      'X-API-Key': process.env.SUBSCRIPTION_API_KEY,
+    },
+  })
+
+  const subscription = await response.json()
+
   if (subscription.plan.slug !== 'auto-landlord-pro') {
-    throw new HTTPException(403, { 
-      message: 'Pro plan required' 
-    });
+    throw new HTTPException(403, {
+      message: 'Pro plan required',
+    })
   }
-  
-  await next();
-};
+
+  await next()
+}
 ```
 
 ---
@@ -361,6 +374,7 @@ For automated payment processors like Stripe:
 Example: `POST /webhooks/stripe`
 
 This will handle:
+
 - Payment success → auto-approve subscription
 - Payment failure → mark as `past_due`
 - Subscription cancellation

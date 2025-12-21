@@ -1,0 +1,32 @@
+{
+  "name": "backend",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "lint": "eslint .",
+    "dev": "wrangler dev",
+    "typecheck": "tsc --noEmit",
+    "migrate:local": "wrangler d1 migrations apply DB --local",
+    "migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "seed:run": "pnpm --filter @repo/db seed:generate | grep -E \"^(--|INSERT)\" > seed.sql && wrangler d1 execute DB --local --file seed.sql && rm seed.sql"
+  },
+  "dependencies": {
+    "@hono/swagger-ui": "^0.5.2",
+    "@hono/zod-openapi": "^1.2.0",
+    "@hono/zod-validator": "^0.7.6",
+    "@repo/db": "workspace:*",
+    "bcryptjs": "^3.0.3",
+    "drizzle-orm": "^0.39.0",
+    "hono": "^4.6.14",
+    "zod": "3.24.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241218.0",
+    "@repo/eslint-config": "workspace:^",
+    "@types/bcryptjs": "^3.0.0",
+    "eslint": "^9.39.1",
+    "typescript": "^5.7.2",
+    "wrangler": "^4.56.0"
+  }
+}

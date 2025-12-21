@@ -1,15 +1,20 @@
-# Deployment Guide
+# Manual Deployment Guide
 
-Complete guide for deploying and managing the subscription platform.
+> [!NOTE]
+> **Deployment is automated via GitHub Actions.** This guide is for reference only or for manual deployments in special cases. For normal deployments, see [deployment.md](./deployment.md).
+
+Complete guide for manually deploying and managing the subscription platform.
 
 ## Prerequisites
 
 ### Accounts Required
+
 - [Cloudflare Account](https://dash.cloudflare.com/sign-up) (Free tier works)
 - [Clerk Account](https://clerk.com/) (for user authentication)
 - Domain name (optional but recommended)
 
 ### Local Development Tools
+
 ```bash
 node -v    # v18+ required
 pnpm -v    # v8+ required
@@ -42,7 +47,7 @@ pnpm add -D @cloudflare/workers-types
 ### 3. Project Structure
 
 ```
-apps/subscription-service/
+apps/backend/
 ├── src/
 │   ├── index.ts                 # Main Hono app
 │   ├── db/
@@ -123,6 +128,7 @@ pnpm drizzle-kit generate:sqlite
 ```
 
 **Migration Content**:
+
 ```sql
 -- drizzle/0003_add_products.sql
 
@@ -135,27 +141,27 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 -- Add product_id to existing tables
-ALTER TABLE subscriptions ADD COLUMN product_id TEXT 
+ALTER TABLE subscriptions ADD COLUMN product_id TEXT
   REFERENCES products(id);
 
-ALTER TABLE plans ADD COLUMN product_id TEXT 
+ALTER TABLE plans ADD COLUMN product_id TEXT
   REFERENCES products(id);
 
 -- Backfill existing data
 INSERT INTO products (id, name, api_key_hash, created_at)
 VALUES (
-  'auto-landlord', 
-  'Auto-Landlord', 
+  'auto-landlord',
+  'Auto-Landlord',
   '$2a$10$PLACEHOLDER', -- Replace with real hash
   strftime('%s', 'now')
 );
 
-UPDATE subscriptions 
-SET product_id = 'auto-landlord' 
+UPDATE subscriptions
+SET product_id = 'auto-landlord'
 WHERE product_id IS NULL;
 
-UPDATE plans 
-SET product_id = 'auto-landlord' 
+UPDATE plans
+SET product_id = 'auto-landlord'
 WHERE product_id IS NULL;
 ```
 
@@ -176,7 +182,7 @@ npx wrangler d1 migrations apply subscription-platform-db --remote
 
 -- Insert plans for Auto-Landlord
 INSERT INTO plans (id, product_id, name, slug, price, features, max_properties)
-VALUES 
+VALUES
   (
     'al-starter',
     'auto-landlord',
@@ -212,28 +218,30 @@ npx wrangler d1 execute subscription-platform-db \
 
 ```typescript
 // scripts/generate-api-key.ts
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
+import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 
 const generateApiKey = async (productName: string) => {
   // Generate random key
-  const apiKey = `${productName.toLowerCase().replace(/\s/g, '-')}_prod_${crypto.randomUUID()}`;
-  
-  // Hash for storage
-  const apiKeyHash = await bcrypt.hash(apiKey, 10);
-  
-  console.log('='.repeat(60));
-  console.log('Product API Key (SAVE THIS - shown only once)');
-  console.log('='.repeat(60));
-  console.log('API Key:', apiKey);
-  console.log('\nHash (for database):', apiKeyHash);
-  console.log('='.repeat(60));
-  
-  console.log('\nInsert into database:');
-  console.log(`UPDATE products SET api_key_hash = '${apiKeyHash}' WHERE id = '${productName.toLowerCase()}';`);
-};
+  const apiKey = `${productName.toLowerCase().replace(/\s/g, '-')}_prod_${crypto.randomUUID()}`
 
-generateApiKey('auto-landlord');
+  // Hash for storage
+  const apiKeyHash = await bcrypt.hash(apiKey, 10)
+
+  console.log('='.repeat(60))
+  console.log('Product API Key (SAVE THIS - shown only once)')
+  console.log('='.repeat(60))
+  console.log('API Key:', apiKey)
+  console.log('\nHash (for database):', apiKeyHash)
+  console.log('='.repeat(60))
+
+  console.log('\nInsert into database:')
+  console.log(
+    `UPDATE products SET api_key_hash = '${apiKeyHash}' WHERE id = '${productName.toLowerCase()}';`,
+  )
+}
+
+generateApiKey('auto-landlord')
 ```
 
 ```bash
@@ -300,6 +308,7 @@ pnpm wrangler deploy
 ### 2. Configure Custom Domain
 
 In Cloudflare Dashboard:
+
 1. Go to **Workers & Pages**
 2. Select `subscription-service`
 3. Click **Triggers** tab
@@ -352,17 +361,17 @@ const fetchSubscription = async (userId: string) => {
         headers: {
           'X-API-Key': import.meta.env.VITE_SUBSCRIPTION_API_KEY,
         },
-      }
-    );
-    
-    if (!response.ok) return null;
-    
-    return await response.json();
+      },
+    )
+
+    if (!response.ok) return null
+
+    return await response.json()
   } catch (error) {
-    console.error('Failed to fetch subscription:', error);
-    return null;
+    console.error('Failed to fetch subscription:', error)
+    return null
   }
-};
+}
 ```
 
 ### 3. Test Integration
@@ -402,6 +411,7 @@ npx wrangler d1 export subscription-platform-db \
 ### Monitor Performance
 
 Cloudflare Dashboard → Workers & Pages → subscription-service:
+
 - **Requests**: Total API calls
 - **Errors**: 5xx responses
 - **CPU Time**: Average execution time
@@ -432,7 +442,9 @@ npx wrangler d1 execute subscription-platform-db \
 ## Scaling
 
 ### Automatic Scaling
+
 Cloudflare Workers auto-scale to handle:
+
 - **10,000 requests/second** per worker
 - **Global edge network** (300+ locations)
 - **0ms cold starts**
@@ -442,6 +454,7 @@ No manual configuration needed.
 ### When to Optimize
 
 Monitor these metrics:
+
 - **CPU Time > 50ms**: Optimize database queries
 - **Error Rate > 1%**: Investigate failed requests
 - **Rate Limit Hits**: Adjust limits or scale KV
@@ -453,6 +466,7 @@ Monitor these metrics:
 ### "401 Unauthorized" Errors
 
 **Check**:
+
 1. API key properly set in environment
 2. API key hash matches database
 3. Product `is_active = 1`
@@ -473,13 +487,13 @@ D1 uses SQLite with serialized writes.
 const retryWrite = async (fn: () => Promise<any>, retries = 3) => {
   for (let i = 0; i < retries; i++) {
     try {
-      return await fn();
+      return await fn()
     } catch (error) {
-      if (i === retries - 1) throw error;
-      await new Promise(r => setTimeout(r, Math.pow(2, i) * 100));
+      if (i === retries - 1) throw error
+      await new Promise((r) => setTimeout(r, Math.pow(2, i) * 100))
     }
   }
-};
+}
 ```
 
 ### "Rate Limit Exceeded"
@@ -494,14 +508,15 @@ const retryWrite = async (fn: () => Promise<any>, retries = 3) => {
 
 Cloudflare Workers pricing (as of 2024):
 
-| Resource | Free Tier | Paid Tier |
-|----------|-----------|-----------|
-| Requests | 100,000/day | $0.50/million |
-| CPU Time | 10ms/request | Same |
-| D1 Rows Read | 5 million/day | $0.001/million |
-| D1 Rows Written | 100,000/day | $1.00/million |
+| Resource        | Free Tier     | Paid Tier      |
+| --------------- | ------------- | -------------- |
+| Requests        | 100,000/day   | $0.50/million  |
+| CPU Time        | 10ms/request  | Same           |
+| D1 Rows Read    | 5 million/day | $0.001/million |
+| D1 Rows Written | 100,000/day   | $1.00/million  |
 
 **Expected Monthly Cost** (1,000 active subscriptions):
+
 - Requests: ~3M/month = $1.50
 - D1 Operations: ~10M reads, 100K writes = $10
 - **Total: ~$12/month**

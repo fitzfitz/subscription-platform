@@ -7,9 +7,11 @@ Comprehensive guide for building a centralized subscription service to power mul
 Read these documents in order for best understanding:
 
 ### 1. [Overview](./00_overview.md)
+
 **Start here** - Understand the big picture, architecture, and design principles.
 
 **Topics**:
+
 - Purpose and goals
 - High-level architecture diagrams
 - Technology stack
@@ -19,9 +21,11 @@ Read these documents in order for best understanding:
 ---
 
 ### 2. [Database Schema](./01_database_schema.md)
+
 Deep dive into data models and relationships.
 
 **Topics**:
+
 - Entity relationship diagram
 - Table definitions (products, plans, users, subscriptions)
 - Indexes for performance
@@ -31,9 +35,11 @@ Deep dive into data models and relationships.
 ---
 
 ### 3. [API Endpoints](./02_api_endpoints.md)
+
 Complete API reference with examples.
 
 **Topics**:
+
 - Authentication with API keys
 - User subscription endpoints
 - Manual payment upgrade flow
@@ -44,9 +50,11 @@ Complete API reference with examples.
 ---
 
 ### 4. [Features](./03_features.md)
+
 Feature breakdown and implementation approach.
 
 **Topics**:
+
 - Multi-product support
 - Manual payment verification
 - Feature gating
@@ -57,9 +65,11 @@ Feature breakdown and implementation approach.
 ---
 
 ### 5. [Security Model](./04_security.md)
+
 Security architecture and best practices.
 
 **Topics**:
+
 - Threat model
 - Defense layers (TLS, API keys, input validation)
 - SQL injection prevention
@@ -71,9 +81,11 @@ Security architecture and best practices.
 ---
 
 ### 6. [Deployment Guide](./05_deployment.md)
+
 Step-by-step deployment and maintenance.
 
 **Topics**:
+
 - Prerequisites and project setup
 - Database configuration
 - API key generation
@@ -88,17 +100,20 @@ Step-by-step deployment and maintenance.
 ## 🚀 Quick Start
 
 ### For Product Managers
+
 1. Read [Overview](./00_overview.md) to understand the vision
 2. Review [Features](./03_features.md) for roadmap planning
 3. Check [Deployment Guide](./05_deployment.md) for cost estimates
 
 ### For Developers
+
 1. Read [Overview](./00_overview.md) for architecture
 2. Study [Database Schema](./01_database_schema.md) for data models
 3. Review [API Endpoints](./02_api_endpoints.md) for integration
 4. Follow [Deployment Guide](./05_deployment.md) for setup
 
 ### For Security Engineers
+
 1. Read [Security Model](./04_security.md) first
 2. Review [API Endpoints](./02_api_endpoints.md) for authentication
 3. Check [Deployment Guide](./05_deployment.md) for secure deployment
@@ -148,23 +163,27 @@ See [Overview](./00_overview.md#user-review-required) for detailed discussion.
 ## 📊 Implementation Phases
 
 ### ✅ Phase 1: MVP (Current)
+
 - [x] Manual payment verification
 - [x] Basic feature gating
 - [x] Single product support (Auto-Landlord)
 
 ### 🚧 Phase 2: Multi-Product
+
 - [ ] Products table and API key system
 - [ ] Product-scoped subscriptions
 - [ ] Rate limiting per product
 - [ ] Admin dashboard integration
 
 ### 📅 Phase 3: Automation
+
 - [ ] Stripe webhook integration
 - [ ] Automated approval flow
 - [ ] Email notifications
 - [ ] Analytics dashboard
 
 ### 🔮 Phase 4: Advanced
+
 - [ ] Usage-based billing
 - [ ] Multi-currency support
 - [ ] Team/organization accounts

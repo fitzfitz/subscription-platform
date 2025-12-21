@@ -9,7 +9,7 @@ erDiagram
     PRODUCTS ||--o{ SUBSCRIPTIONS : "has many"
     PLANS ||--o{ SUBSCRIPTIONS : "has many"
     USERS ||--o{ SUBSCRIPTIONS : "has many"
-    
+
     PRODUCTS {
         text id PK
         text name
@@ -17,7 +17,7 @@ erDiagram
         integer is_active
         integer created_at
     }
-    
+
     PLANS {
         text id PK
         text product_id FK
@@ -28,7 +28,7 @@ erDiagram
         integer max_properties
         integer is_active
     }
-    
+
     USERS {
         text id PK "Clerk UserID"
         text email UK
@@ -36,7 +36,7 @@ erDiagram
         text role
         integer created_at
     }
-    
+
     SUBSCRIPTIONS {
         text id PK
         text user_id FK
@@ -61,33 +61,32 @@ erDiagram
 Registered applications that can query the subscription service.
 
 ```typescript
-export const products = sqliteTable("products", {
-  id: text("id")
+export const products = sqliteTable('products', {
+  id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  
-  name: text("name").notNull(),
+
+  name: text('name').notNull(),
   // Product display name (e.g., "Auto-Landlord")
-  
-  apiKeyHash: text("api_key_hash").notNull().unique(),
+
+  apiKeyHash: text('api_key_hash').notNull().unique(),
   // Bcrypt hash of the product's API key
   // Never store plain text API keys
-  
-  isActive: integer("is_active", { mode: "boolean" })
-    .notNull()
-    .default(true),
+
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   // Administrative flag to disable a product
-  
-  createdAt: integer("created_at", { mode: "timestamp" })
+
+  createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
     .$defaultFn(() => new Date()),
-});
+})
 ```
 
 **Example Data**:
+
 ```sql
 INSERT INTO products (id, name, api_key_hash, is_active)
-VALUES 
+VALUES
   ('auto-landlord', 'Auto-Landlord', '$2a$10$...', 1),
   ('product-b', 'Product B', '$2a$10$...', 1);
 ```
@@ -99,45 +98,44 @@ VALUES
 Pricing tiers per product with feature limits.
 
 ```typescript
-export const plans = sqliteTable("plans", {
-  id: text("id")
+export const plans = sqliteTable('plans', {
+  id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  
-  productId: text("product_id")
+
+  productId: text('product_id')
     .notNull()
     .references(() => products.id),
   // Which product this plan belongs to
-  
-  name: text("name").notNull(),
+
+  name: text('name').notNull(),
   // Display name (e.g., "Starter", "Pro", "Enterprise")
-  
-  slug: text("slug").notNull().unique(),
+
+  slug: text('slug').notNull().unique(),
   // URL-safe identifier (e.g., "auto-landlord-pro")
-  
-  price: integer("price").notNull(),
+
+  price: integer('price').notNull(),
   // Price in cents (e.g., 2900 = $29.00)
-  
-  features: text("features").notNull(),
+
+  features: text('features').notNull(),
   // Comma-separated feature list for display
-  
-  maxProperties: integer("max_properties").notNull(),
+
+  maxProperties: integer('max_properties').notNull(),
   // Feature gate: maximum properties allowed
-  
-  isActive: integer("is_active", { mode: "boolean" })
-    .notNull()
-    .default(true),
+
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   // Administrative flag to hide/show plans
-});
+})
 ```
 
 **Example Data**:
+
 ```sql
 INSERT INTO plans (id, product_id, name, slug, price, features, max_properties)
-VALUES 
-  ('plan-001', 'auto-landlord', 'Starter', 'auto-landlord-starter', 0, 
+VALUES
+  ('plan-001', 'auto-landlord', 'Starter', 'auto-landlord-starter', 0,
    'Up to 2 properties,Basic tenant management,Email support', 2),
-  ('plan-002', 'auto-landlord', 'Pro', 'auto-landlord-pro', 2900, 
+  ('plan-002', 'auto-landlord', 'Pro', 'auto-landlord-pro', 2900,
    'Unlimited properties,Advanced reporting,Priority support', 999999);
 ```
 
@@ -148,27 +146,27 @@ VALUES
 User accounts synchronized from Clerk.
 
 ```typescript
-export const users = sqliteTable("users", {
-  id: text("id").primaryKey(),
+export const users = sqliteTable('users', {
+  id: text('id').primaryKey(),
   // Clerk UserID - serves as primary key
-  
-  email: text("email").notNull().unique(),
-  
-  name: text("name"),
+
+  email: text('email').notNull().unique(),
+
+  name: text('name'),
   // Optional display name
-  
-  role: text("role").notNull().default("USER"),
+
+  role: text('role').notNull().default('USER'),
   // USER | SUPER_ADMIN
   // SUPER_ADMIN can approve payments
-  
-  createdAt: integer("created_at", { mode: "timestamp" })
+
+  createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
     .$defaultFn(() => new Date()),
-  
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
     .notNull()
     .$defaultFn(() => new Date()),
-});
+})
 ```
 
 ---
@@ -178,58 +176,59 @@ export const users = sqliteTable("users", {
 User's active subscription for a specific product.
 
 ```typescript
-export const subscriptions = sqliteTable("subscriptions", {
-  id: text("id")
+export const subscriptions = sqliteTable('subscriptions', {
+  id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  
-  userId: text("user_id")
+
+  userId: text('user_id')
     .notNull()
     .references(() => users.id),
   // Which user owns this subscription
-  
-  planId: text("plan_id")
+
+  planId: text('plan_id')
     .notNull()
     .references(() => plans.id),
   // Current plan
-  
-  productId: text("product_id")
+
+  productId: text('product_id')
     .notNull()
     .references(() => products.id),
   // Which product this subscription is for
-  
-  status: text("status").notNull(),
+
+  status: text('status').notNull(),
   // active | pending_verification | past_due | canceled
-  
-  provider: text("provider").default("MANUAL"),
+
+  provider: text('provider').default('MANUAL'),
   // MANUAL | STRIPE | PAYPAL | SYSTEM
-  
-  externalId: text("external_id"),
+
+  externalId: text('external_id'),
   // External payment gateway transaction ID
-  
-  paymentProofUrl: text("payment_proof_url"),
+
+  paymentProofUrl: text('payment_proof_url'),
   // URL to uploaded receipt (from R2)
-  
-  paymentNote: text("payment_note"),
+
+  paymentNote: text('payment_note'),
   // User's message with payment details
-  
-  startDate: integer("start_date", { mode: "timestamp" }),
+
+  startDate: integer('start_date', { mode: 'timestamp' }),
   // When subscription became active
-  
-  endDate: integer("end_date", { mode: "timestamp" }),
+
+  endDate: integer('end_date', { mode: 'timestamp' }),
   // When subscription expires (null = lifetime/active)
-  
-  createdAt: integer("created_at", { mode: "timestamp" })
+
+  createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
     .$defaultFn(() => new Date()),
-  
-  updatedAt: integer("updated_at", { mode: "timestamp" })
+
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
     .notNull()
     .$defaultFn(() => new Date()),
-});
+})
 ```
 
 **Status States**:
+
 - `active`: User can access paid features
 - `pending_verification`: Manual payment submitted, awaiting admin approval
 - `past_due`: Payment failed or expired
@@ -243,15 +242,15 @@ For optimal query performance:
 
 ```sql
 -- Subscription lookup by user and product
-CREATE INDEX idx_subscriptions_user_product 
+CREATE INDEX idx_subscriptions_user_product
 ON subscriptions(user_id, product_id);
 
 -- Pending verifications for admin dashboard
-CREATE INDEX idx_subscriptions_status 
+CREATE INDEX idx_subscriptions_status
 ON subscriptions(status);
 
 -- Plan lookup by product
-CREATE INDEX idx_plans_product 
+CREATE INDEX idx_plans_product
 ON plans(product_id);
 ```
 
@@ -260,7 +259,9 @@ ON plans(product_id);
 ## Key Relationships
 
 ### One User, Multiple Subscriptions
+
 A user can have different subscriptions for different products:
+
 ```
 User: john@example.com
 ├─ Subscription 1: Auto-Landlord Pro
@@ -268,7 +269,9 @@ User: john@example.com
 ```
 
 ### One Product, Multiple Plans
+
 Each product defines its own pricing tiers:
+
 ```
 Product: Auto-Landlord
 ├─ Plan: Starter (Free)
@@ -277,15 +280,14 @@ Product: Auto-Landlord
 ```
 
 ### Product Isolation
+
 Queries always filter by `product_id`:
+
 ```typescript
 // Get user's subscription for Auto-Landlord
 const sub = await db.query.subscriptions.findFirst({
-  where: and(
-    eq(subscriptions.userId, userId),
-    eq(subscriptions.productId, 'auto-landlord')
-  )
-});
+  where: and(eq(subscriptions.userId, userId), eq(subscriptions.productId, 'auto-landlord')),
+})
 ```
 
 ---
@@ -293,18 +295,21 @@ const sub = await db.query.subscriptions.findFirst({
 ## Migration Strategy
 
 ### Phase 1: Add Products Table
+
 ```sql
 CREATE TABLE products (...);
 INSERT INTO products VALUES ('auto-landlord', ...);
 ```
 
 ### Phase 2: Add product_id to Subscriptions
+
 ```sql
 ALTER TABLE subscriptions ADD COLUMN product_id TEXT;
 UPDATE subscriptions SET product_id = 'auto-landlord';
 ```
 
 ### Phase 3: Update Plans
+
 ```sql
 ALTER TABLE plans ADD COLUMN product_id TEXT;
 UPDATE plans SET product_id = 'auto-landlord';
