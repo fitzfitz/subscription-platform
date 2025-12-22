@@ -63,7 +63,6 @@ export function AdminSidebar() {
           </div>
         </div>
       </div>
-
       {/* Navigation */}
       <nav className='flex-1 p-4 space-y-1'>
         {navItems.map((item) => (
@@ -86,7 +85,7 @@ export function AdminSidebar() {
           </NavLink>
         ))}
       </nav>
-
+      Staging
       {/* User Profile & Logout */}
       <div className='p-4 border-t border-sidebar-border'>
         <div className='flex items-center gap-3 p-3 rounded-xl bg-sidebar-accent/50 mb-3'>
