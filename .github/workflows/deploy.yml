@@ -138,6 +138,7 @@ jobs:
           projectName: subscription-platform
           directory: apps/web/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          production: true
 
   deploy-preview:
     name: Deploy Preview (Master)
@@ -179,4 +180,4 @@ jobs:
           projectName: subscription-platform
           directory: apps/web/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          branch: master
+          production: false
