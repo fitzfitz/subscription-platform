@@ -4,7 +4,6 @@ import * as schema from '@repo/db'
 import { adminUsers, products, plans, users, subscriptions } from '@repo/db'
 import bcrypt from 'bcryptjs'
 
-
 export class AdminManagementService {
   private readonly db: DrizzleD1Database<typeof schema>
 

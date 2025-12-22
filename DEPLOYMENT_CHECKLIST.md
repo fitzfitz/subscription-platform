@@ -12,7 +12,7 @@ Add these 2 secrets:
 Name: CLOUDFLARE_API_TOKEN
 Value: <your-cloudflare-api-token>
 
-Name: CLOUDFLARE_ACCOUNT_ID  
+Name: CLOUDFLARE_ACCOUNT_ID
 Value: <your-cloudflare-account-id>
 ```
 

@@ -1,11 +1,6 @@
 import { useState } from 'react'
 import { HugeiconsIcon } from '@hugeicons/react'
-import {
-  Add01Icon,
-  Delete02Icon,
-  Edit02Icon,
-  MoneyBag01Icon,
-} from '@hugeicons/core-free-icons'
+import { Add01Icon, Delete02Icon, Edit02Icon, MoneyBag01Icon } from '@hugeicons/core-free-icons'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
