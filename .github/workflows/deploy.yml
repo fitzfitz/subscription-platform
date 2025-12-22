@@ -19,7 +19,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      
+
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
@@ -64,7 +64,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      
+
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
@@ -115,7 +115,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      
+
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
@@ -156,7 +156,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      
+
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
@@ -168,7 +168,7 @@ jobs:
       - name: Build Frontend (Preview)
         run: pnpm --filter web build
         env:
-          VITE_API_URL: ${{ secrets.PREVIEW_API_URL }}
+          VITE_API_URL: ${{ secrets.API_URL }}
           VITE_APP_NAME: Subscription Platform (Preview)
 
       - name: Deploy to Cloudflare Pages (Preview)
