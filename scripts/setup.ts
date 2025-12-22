@@ -91,16 +91,26 @@ async function setup() {
 
   // Step 5: Update product with working dev API key hash
   log('🔐', 'Configuring dev API key in database...')
+  const sqlUpdatePath = resolve(ROOT, 'update-hash.sql')
   const sqlCmd = `UPDATE products SET api_key_hash = '${DEV_API_KEY_HASH}' WHERE id = 'auto-landlord';`
 
   try {
-    execSync(`pnpm --filter backend exec wrangler d1 execute DB --local --command "${sqlCmd}"`, {
-      cwd: ROOT,
-      stdio: 'inherit',
-    })
+    writeFileSync(sqlUpdatePath, sqlCmd)
+    execSync(
+      `pnpm --filter backend exec wrangler d1 execute DB --local --file "${sqlUpdatePath}"`,
+      {
+        cwd: ROOT,
+        stdio: 'inherit',
+      },
+    )
     log('  ✅', 'Dev API key configured')
-  } catch {
+  } catch (err) {
     log('⚠️', 'Could not update API key (product might not exist yet)')
+  } finally {
+    if (existsSync(sqlUpdatePath)) {
+      const { unlinkSync } = await import('fs')
+      unlinkSync(sqlUpdatePath)
+    }
   }
 
   // Done!

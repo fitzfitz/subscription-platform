@@ -1,6 +1,6 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
 import { createDb } from '../../db'
-import { Bindings, Variables } from '../../types/bindings'
+import type { Bindings, Variables } from '../../types/bindings'
 import { SubscriptionsService } from './service'
 
 const getSubscriptionRoute = createRoute({
@@ -8,6 +8,7 @@ const getSubscriptionRoute = createRoute({
   path: '/subscriptions/{userId}',
   summary: 'Get Subscription',
   description: 'Get active subscription for a user.',
+  security: [{ ApiKeyAuth: [] }],
   request: {
     params: z.object({
       userId: z.string(),
@@ -52,9 +53,10 @@ const upgradeSchema = z.object({
 
 const upgradeRoute = createRoute({
   method: 'post',
-  path: '/{userId}/upgrade',
+  path: '/subscriptions/{userId}/upgrade',
   summary: 'Request Upgrade',
   description: 'Submit an upgrade request',
+  security: [{ ApiKeyAuth: [] }],
   request: {
     params: z.object({
       userId: z.string(),

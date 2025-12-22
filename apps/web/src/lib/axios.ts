@@ -11,7 +11,16 @@ export const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Global error handling (e.g. 401 redirect)
+    // Handle 401 - redirect to login
+    if (error.response?.status === 401) {
+      // Clear auth storage
+      localStorage.removeItem('auth-storage')
+
+      // Only redirect if not already on login page
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
+    }
     return Promise.reject(error)
   },
 )

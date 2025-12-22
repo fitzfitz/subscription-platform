@@ -1,6 +1,6 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
 import { createDb } from '../../db'
-import { Bindings, Variables } from '../../types/bindings'
+import type { Bindings, Variables } from '../../types/bindings'
 import { PlansService } from './service'
 
 const getPlansRoute = createRoute({
@@ -8,6 +8,7 @@ const getPlansRoute = createRoute({
   path: '/plans',
   summary: 'List Active Plans',
   description: 'Retrieve all active plans for the authenticated product.',
+  security: [{ ApiKeyAuth: [] }],
   responses: {
     200: {
       description: 'List of plans',

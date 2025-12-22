@@ -13,6 +13,7 @@ pnpm dev
 ```
 
 That's it! The setup script automatically:
+
 - Copies all environment files
 - Runs database migrations
 - Seeds initial data
@@ -22,11 +23,11 @@ That's it! The setup script automatically:
 
 ### Endpoints
 
-| Service | URL |
-|---------|-----|
-| Backend | http://localhost:8787 |
+| Service    | URL                      |
+| ---------- | ------------------------ |
+| Backend    | http://localhost:8787    |
 | Swagger UI | http://localhost:8787/ui |
-| Frontend | http://localhost:5173 |
+| Frontend   | http://localhost:5173    |
 
 ### Prerequisites
 
@@ -67,6 +68,7 @@ pnpm db:execute --command "UPDATE products SET api_key_hash = '...' WHERE id = '
 ### 4. Configure Frontend
 
 Add your API key to `apps/web/.env`:
+
 ```env
 VITE_SUBSCRIPTION_API_KEY=your-product_prod_...
 ```

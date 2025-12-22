@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, text, integer, unique } from 'drizzle-orm/sqlite-core'
 import { relations } from 'drizzle-orm'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 
@@ -57,16 +57,10 @@ export const plans = sqliteTable('plans', {
 
 export const users = sqliteTable('users', {
   id: text('id').primaryKey(),
-  // Clerk UserID - serves as primary key
+  // Clerk UserID from product apps - serves as primary key
 
   email: text('email').notNull().unique(),
-
-  name: text('name'),
-  // Optional display name
-
-  role: text('role').notNull().default('USER'),
-  // USER | SUPER_ADMIN
-  // SUPER_ADMIN can approve payments
+  // Email for admin convenience only (display in subscription lists)
 
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
@@ -77,46 +71,30 @@ export const users = sqliteTable('users', {
     .$defaultFn(() => new Date()),
 })
 
-export const subscriptions = sqliteTable('subscriptions', {
+// Admin Users - Platform administrators (separate from product users)
+export const adminUsers = sqliteTable('admin_users', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
 
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id),
-  // Which user owns this subscription
+  email: text('email').notNull().unique(),
+  // Admin login email
 
-  planId: text('plan_id')
-    .notNull()
-    .references(() => plans.id),
-  // Current plan
+  passwordHash: text('password_hash').notNull(),
+  // Bcrypt hashed password
 
-  productId: text('product_id')
-    .notNull()
-    .references(() => products.id),
-  // Which product this subscription is for
+  name: text('name').notNull(),
+  // Display name for the admin
 
-  status: text('status').notNull(),
-  // active | pending_verification | past_due | canceled
+  role: text('role').notNull().default('ADMIN'),
+  // ADMIN | SUPER_ADMIN
+  // SUPER_ADMIN can manage other admins
 
-  provider: text('provider').default('MANUAL'),
-  // MANUAL | STRIPE | PAYPAL | SYSTEM
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  // Whether admin can login
 
-  externalId: text('external_id'),
-  // External payment gateway transaction ID
-
-  paymentProofUrl: text('payment_proof_url'),
-  // URL to uploaded receipt (from R2)
-
-  paymentNote: text('payment_note'),
-  // User's message with payment details
-
-  startDate: integer('start_date', { mode: 'timestamp' }),
-  // When subscription became active
-
-  endDate: integer('end_date', { mode: 'timestamp' }),
-  // When subscription expires (null = lifetime/active)
+  lastLoginAt: integer('last_login_at', { mode: 'timestamp' }),
+  // Track last login time
 
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
@@ -126,6 +104,63 @@ export const subscriptions = sqliteTable('subscriptions', {
     .notNull()
     .$defaultFn(() => new Date()),
 })
+
+export const subscriptions = sqliteTable(
+  'subscriptions',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id),
+    // Which user owns this subscription
+
+    planId: text('plan_id')
+      .notNull()
+      .references(() => plans.id),
+    // Current plan
+
+    productId: text('product_id')
+      .notNull()
+      .references(() => products.id),
+    // Which product this subscription is for
+
+    status: text('status').notNull(),
+    // active | pending_verification | past_due | canceled
+
+    provider: text('provider').default('MANUAL'),
+    // MANUAL | STRIPE | PAYPAL | SYSTEM
+
+    externalId: text('external_id'),
+    // External payment gateway transaction ID
+
+    paymentProofUrl: text('payment_proof_url'),
+    // URL to uploaded receipt (from R2)
+
+    paymentNote: text('payment_note'),
+    // User's message with payment details
+
+    startDate: integer('start_date', { mode: 'timestamp' }),
+    // When subscription became active
+
+    endDate: integer('end_date', { mode: 'timestamp' }),
+    // When subscription expires (null = lifetime/active)
+
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => ({
+    // Unique constraint: one subscription per user per product
+    uniqueUserProduct: unique().on(table.userId, table.productId),
+  }),
+)
 
 // Zod Schemas
 export const insertProductSchema = createInsertSchema(products)
@@ -139,6 +174,9 @@ export const selectUserSchema = createSelectSchema(users)
 
 export const insertSubscriptionSchema = createInsertSchema(subscriptions)
 export const selectSubscriptionSchema = createSelectSchema(subscriptions)
+
+export const insertAdminUserSchema = createInsertSchema(adminUsers)
+export const selectAdminUserSchema = createSelectSchema(adminUsers)
 
 // Drizzle Relations
 export const productsRelations = relations(products, ({ many }) => ({

@@ -7,6 +7,7 @@
     "lint": "eslint .",
     "dev": "wrangler dev",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "migrate:local": "wrangler d1 migrations apply DB --local",
     "migrate:remote": "wrangler d1 migrations apply DB --remote",
     "seed:run": "pnpm --filter @repo/db seed:generate | grep -E \"^(--|INSERT)\" > seed.sql && wrangler d1 execute DB --local --file seed.sql && rm seed.sql"
@@ -27,6 +28,9 @@
     "@types/bcryptjs": "^3.0.0",
     "eslint": "^9.39.1",
     "typescript": "^5.7.2",
-    "wrangler": "^4.56.0"
+    "wrangler": "^4.56.0",
+    "vitest": "^2.1.8",
+    "@vitest/coverage-v8": "^2.1.8",
+    "unenv": "^1.10.0"
   }
 }

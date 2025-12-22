@@ -12,7 +12,8 @@
     "seed:generate": "turbo run seed:generate",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "db:execute": "pnpm --filter backend exec wrangler d1 execute DB --local",
-    "setup": "tsx scripts/setup.ts"
+    "setup": "tsx scripts/setup.ts",
+    "clean": "rm -rf pnpm-lock.yaml yarn.lock package-lock.json node_modules .wrangler .next dist out build .svelte-kit .cache public .parcel-cache .turbo"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
@@ -25,7 +26,8 @@
   },
   "pnpm": {
     "overrides": {
-      "zod": "3.24.1"
+      "zod": "3.24.1",
+      "@asteasolutions/zod-to-openapi": "7.3.0"
     }
   }
 }

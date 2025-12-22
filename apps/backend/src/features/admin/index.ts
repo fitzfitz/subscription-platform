@@ -1,6 +1,6 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
 import { createDb } from '../../db'
-import { Bindings, Variables } from '../../types/bindings'
+import type { Bindings, Variables } from '../../types/bindings'
 import { AdminService } from './service'
 
 const getPendingRoute = createRoute({
@@ -8,6 +8,7 @@ const getPendingRoute = createRoute({
   path: '/admin/pending',
   summary: 'List Pending Subscriptions',
   description: 'Retrieve all subscriptions awaiting admin verification.',
+  security: [{ ApiKeyAuth: [] }],
   responses: {
     200: {
       description: 'List of pending subscriptions',
@@ -54,6 +55,7 @@ const verifyRoute = createRoute({
   path: '/admin/verify',
   summary: 'Verify Subscription',
   description: 'Approve or reject a pending subscription.',
+  security: [{ ApiKeyAuth: [] }],
   request: {
     body: {
       content: {

@@ -95,16 +95,19 @@ The workflow will:
 ## Health Monitoring
 
 The backend includes a `/health` endpoint that:
+
 - Checks database connectivity
 - Returns JSON status
 - Used by CI/CD for post-deployment verification
 
 **Test locally:**
+
 ```bash
 curl http://localhost:8787/health
 ```
 
 **Response:**
+
 ```json
 {
   "status": "healthy",

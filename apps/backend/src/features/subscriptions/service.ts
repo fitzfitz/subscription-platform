@@ -3,7 +3,11 @@ import * as schema from '@repo/db'
 import { subscriptions } from '@repo/db'
 
 export class SubscriptionsService {
-  constructor(private readonly db: DrizzleD1Database<typeof schema>) {}
+  private readonly db: DrizzleD1Database<typeof schema>
+
+  constructor(db: DrizzleD1Database<typeof schema>) {
+    this.db = db
+  }
 
   async getByUserId(userId: string, productId: string) {
     return this.db.query.subscriptions.findFirst({

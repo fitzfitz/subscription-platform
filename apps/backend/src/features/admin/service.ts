@@ -4,7 +4,11 @@ import * as schema from '@repo/db'
 import { subscriptions } from '@repo/db'
 
 export class AdminService {
-  constructor(private readonly db: DrizzleD1Database<typeof schema>) {}
+  private readonly db: DrizzleD1Database<typeof schema>
+
+  constructor(db: DrizzleD1Database<typeof schema>) {
+    this.db = db
+  }
 
   async getPendingSubscriptions(productId?: string) {
     return this.db.query.subscriptions.findMany({

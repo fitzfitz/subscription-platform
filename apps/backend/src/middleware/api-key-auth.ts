@@ -1,10 +1,10 @@
 import { createMiddleware } from 'hono/factory'
 import { HTTPException } from 'hono/http-exception'
-import { Bindings, Variables } from '../types/bindings'
-// import bcrypt from 'bcryptjs' // D1/Workers usually use web crypto or a simpler hashing for high perf, but let's stick to plan.
-// Note: bcryptjs might be heavy for workers, but we'll use a placeholder/simplified version for now or standard comparsion if hashes are stored.
-// Actually, `docs/03_features.md` mentions `bcrypt.compare`.
-// For now, I will implement a basic check against the DB.
+import type { Bindings, Variables } from '../types/bindings'
+import bcrypt from 'bcryptjs'
+import { createDb } from '../db'
+import { eq } from 'drizzle-orm'
+import { products } from '@repo/db'
 
 export const apiKeyAuth = createMiddleware<{ Bindings: Bindings; Variables: Variables }>(
   async (c, next) => {
@@ -14,20 +14,31 @@ export const apiKeyAuth = createMiddleware<{ Bindings: Bindings; Variables: Vari
       throw new HTTPException(401, { message: 'Missing API Key' })
     }
 
-    // TODO: Implement real API key validation using bcrypt
-    // c.set('productId', ...)
+    // Keys are prefixed with the product identifier: {productId}_prod_{uuid}
+    const parts = apiKey.split('_')
+    const productId = parts[0]
 
-    // TEMPORARY: Just passing through if it looks like a key, to unblock scaffolding.
-    // We will assume the key IS the ID for this specific MVP step until `bcryptjs` is added.
-    if (apiKey === 'admin_master_key') {
-      // Special admin bypass?
-    } else {
-      // Real logic
+    if (!productId) {
+      throw new HTTPException(401, { message: 'Invalid API Key format' })
     }
 
-    // Mock success for scaffolding
-    c.set('productId', 'auto-landlord')
+    const db = createDb(c.env)
+    const product = await db.query.products.findFirst({
+      where: eq(products.id, productId),
+    })
 
+    if (!product || !product.isActive) {
+      throw new HTTPException(401, { message: 'Product not found or inactive' })
+    }
+
+    // Verify key against stored hash
+    const isValid = await bcrypt.compare(apiKey, product.apiKeyHash)
+
+    if (!isValid) {
+      throw new HTTPException(401, { message: 'Invalid API Key' })
+    }
+
+    c.set('productId', product.id)
     await next()
   },
 )

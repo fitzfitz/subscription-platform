@@ -15,6 +15,27 @@
       "when": 1766289993389,
       "tag": "0001_faithful_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1766390228351,
+      "tag": "0002_big_hammerhead",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1766422948872,
+      "tag": "0003_jazzy_tiger_shark",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1766424815883,
+      "tag": "0004_clean_rogue",
+      "breakpoints": true
     }
   ]
 }
