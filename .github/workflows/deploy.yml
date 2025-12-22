@@ -138,46 +138,4 @@ jobs:
           projectName: subscription-platform
           directory: apps/web/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          production: true
-
-  deploy-preview:
-    name: Deploy Preview (Master)
-    needs: ci
-    if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    environment: preview
-    permissions:
-      contents: read
-      deployments: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build Frontend (Preview)
-        run: pnpm --filter web build
-        env:
-          VITE_API_URL: ${{ secrets.API_URL }}
-          VITE_APP_NAME: Subscription Platform (Preview)
-
-      - name: Deploy to Cloudflare Pages (Preview)
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: subscription-platform
-          directory: apps/web/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          production: false
+          # No branch specified = production deployment

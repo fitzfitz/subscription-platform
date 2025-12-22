@@ -58,7 +58,7 @@ export function AdminSidebar() {
             </svg>
           </div>
           <div>
-            <h1 className='font-bold text-sidebar-foreground'>Sub Platform</h1>
+            <h1 className='font-bold text-sidebar-foreground'>Subscriptions</h1>
             <p className='text-xs text-sidebar-foreground/60'>Admin Portal</p>
           </div>
         </div>
