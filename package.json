@@ -13,6 +13,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "db:execute": "pnpm --filter backend exec wrangler d1 execute DB --local",
     "setup": "tsx scripts/setup.ts",
+    "seed:remote": "bash scripts/seed-remote.sh",
     "clean": "rm -rf pnpm-lock.yaml yarn.lock package-lock.json node_modules .wrangler .next dist out build .svelte-kit .cache public .parcel-cache .turbo"
   },
   "devDependencies": {
