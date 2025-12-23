@@ -31,7 +31,8 @@ erDiagram
         text slug UK
         integer price
         text features
-        integer max_properties
+        text limits
+        integer max_properties_deprecated
         integer is_active
     }
 
@@ -158,8 +159,12 @@ export const plans = sqliteTable('plans', {
   features: text('features').notNull(),
   // Comma-separated feature list for display
 
-  maxProperties: integer('max_properties').notNull(),
-  // Feature gate: maximum properties allowed
+  limits: text('limits').notNull(),
+  // JSON object containing plan limits (e.g., {"properties": 50, "users": 10})
+  // Supports any product-specific limit structure
+
+  maxProperties: integer('max_properties'),
+  // @deprecated - Use 'limits' field instead. Kept for backwards compatibility.
 
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   // Administrative flag to hide/show plans
@@ -169,12 +174,43 @@ export const plans = sqliteTable('plans', {
 **Example Data**:
 
 ```sql
-INSERT INTO plans (id, product_id, name, slug, price, features, max_properties)
+INSERT INTO plans (id, product_id, name, slug, price, features, limits, max_properties)
 VALUES
   ('plan-001', 'auto-landlord', 'Starter', 'auto-landlord-starter', 0,
-   'Up to 2 properties,Basic tenant management,Email support', 2),
+   'Up to 2 properties,Basic tenant management,Email support', '{"properties": 2}', 2),
   ('plan-002', 'auto-landlord', 'Pro', 'auto-landlord-pro', 2900,
-   'Unlimited properties,Advanced reporting,Priority support', 999999);
+   'Unlimited properties,Advanced reporting,Priority support', '{"properties": 999999}', 999999);
+```
+
+**Flexible Limits Examples for Different Products**:
+
+```json
+// Property Management SaaS
+{
+  "limits": {
+    "properties": 50,
+    "tenants": 200,
+    "storage_gb": 10
+  }
+}
+
+// Project Management SaaS
+{
+  "limits": {
+    "projects": 10,
+    "team_members": 5,
+    "tasks_per_project": 1000
+  }
+}
+
+// Email Marketing SaaS
+{
+  "limits": {
+    "contacts": 5000,
+    "emails_per_month": 10000,
+    "automations": 3
+  }
+}
 ```
 
 ---

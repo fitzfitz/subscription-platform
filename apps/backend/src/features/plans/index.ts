@@ -22,7 +22,7 @@ const getPlansRoute = createRoute({
               slug: z.string(),
               price: z.number(),
               features: z.string(),
-              maxProperties: z.number(),
+              limits: z.record(z.union([z.number(), z.boolean(), z.string()])),
               isActive: z.boolean(),
               createdAt: z.string(),
             }),

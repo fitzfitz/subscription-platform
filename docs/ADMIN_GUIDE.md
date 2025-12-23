@@ -48,7 +48,11 @@ Plans define the pricing and limits for your products.
     - **Name**: e.g., "Pro Plan".
     - **Product**: Select the parent product.
     - **Price**: Monthly cost (in cents).
-    - **Limits**: Define usage limits (e.g., "5 projects", "1000 emails").
+    - **Limits**: Define usage limits as JSON object (e.g., `{"properties": 50, "users": 10}`).
+      - For different product types, use different limit keys
+      - Property Management: `{"properties": N, "tenants": N}`
+      - Project Management: `{"projects": N, "team_members": N}`
+      - Email Marketing: `{"contacts": N, "emails_per_month": N}`
 
 ---
 

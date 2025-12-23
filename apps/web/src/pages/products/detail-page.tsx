@@ -59,7 +59,9 @@ function PlanRow({ plan, onEdit }: { plan: Plan; onEdit: () => void }) {
         </div>
         <div className='flex items-center gap-4 mt-1 text-sm text-muted-foreground'>
           <span className='font-medium text-foreground'>${(plan.price / 100).toFixed(2)}/mo</span>
-          <span>Max {plan.maxProperties} properties</span>
+          <code className='text-xs bg-muted px-2 py-0.5 rounded font-mono'>
+            {JSON.stringify(plan.limits)}
+          </code>
           {plan.features && <span className='truncate max-w-[200px]'>{plan.features}</span>}
         </div>
       </div>
@@ -101,7 +103,7 @@ function PlanForm({
     slug: plan?.slug || '',
     price: plan?.price || 0,
     features: plan?.features || '',
-    maxProperties: plan?.maxProperties || 10,
+    limits: JSON.stringify(plan?.limits || { properties: 10 }, null, 2),
   })
 
   const generateSlug = (name: string) => {
@@ -114,12 +116,29 @@ function PlanForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (plan) {
-      await updateMutation.mutateAsync({ id: plan.id, data: formData })
-    } else {
-      await createMutation.mutateAsync({ ...formData, productId } as CreatePlanRequest)
+    try {
+      const parsedLimits = JSON.parse(formData.limits)
+      const dataToSubmit = {
+        name: formData.name,
+        slug: formData.slug,
+        price: formData.price,
+        features: formData.features,
+        limits: parsedLimits,
+      }
+
+      if (plan) {
+        await updateMutation.mutateAsync({ id: plan.id, data: dataToSubmit })
+      } else {
+        await createMutation.mutateAsync({
+          ...dataToSubmit,
+          productId,
+          isActive: true,
+        } as CreatePlanRequest)
+      }
+      onSuccess()
+    } catch (e) {
+      alert('Invalid JSON format for limits')
     }
-    onSuccess()
   }
 
   const isPending = createMutation.isPending || updateMutation.isPending
@@ -169,15 +188,18 @@ function PlanForm({
               {formData.price > 0 ? `$${(formData.price / 100).toFixed(2)}/mo` : 'Free'}
             </p>
           </div>
-          <div>
-            <Label className='text-xs'>Max Properties</Label>
-            <Input
-              type='number'
-              value={formData.maxProperties}
-              onChange={(e) => setFormData({ ...formData, maxProperties: Number(e.target.value) })}
-              className='mt-1'
-              min={0}
+          <div className='col-span-2'>
+            <Label className='text-xs'>Limits (JSON) *</Label>
+            <textarea
+              value={formData.limits}
+              onChange={(e) => setFormData({ ...formData, limits: e.target.value })}
+              placeholder='{"properties": 10, "users": 5}'
+              className='mt-1 w-full min-h-[70px] px-3 py-2 border border-input rounded-lg bg-background font-mono text-xs'
+              required
             />
+            <p className='text-xs text-muted-foreground mt-0.5'>
+              Define limits as JSON, e.g., {'{"properties": 50, "users": 10}'}
+            </p>
           </div>
         </div>
         <div>

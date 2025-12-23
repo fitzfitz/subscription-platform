@@ -51,7 +51,10 @@ X-API-Key: your_api_key
     "slug": "basic",
     "price": 100000,
     "features": "10 properties, Basic support",
-    "maxProperties": 10,
+    "limits": {
+      "properties": 10,
+      "users": 2
+    },
     "isActive": true
   },
   {
@@ -60,7 +63,11 @@ X-API-Key: your_api_key
     "slug": "pro",
     "price": 250000,
     "features": "50 properties, Priority support, Analytics",
-    "maxProperties": 50,
+    "limits": {
+      "properties": 50,
+      "users": 10,
+      "analytics": true
+    },
     "isActive": true
   }
 ]
@@ -207,14 +214,11 @@ X-API-Key: your_api_key
 
 ```javascript
 async function getPaymentMethods(productId) {
-  const response = await fetch(
-    `https://subs-api.fitzgeral.my.id/${productId}/payment-methods`,
-    {
-      headers: {
-        'X-API-Key': process.env.SUBSCRIPTION_API_KEY,
-      },
+  const response = await fetch(`https://subs-api.fitzgeral.my.id/${productId}/payment-methods`, {
+    headers: {
+      'X-API-Key': process.env.SUBSCRIPTION_API_KEY,
     },
-  )
+  })
 
   if (!response.ok) {
     throw new Error('Failed to fetch payment methods')
@@ -288,22 +292,19 @@ Content-Type: application/json
 
 ```javascript
 async function submitUpgrade(userId, planId, paymentProof) {
-  const response = await fetch(
-    `https://subs-api.fitzgeral.my.id/subscriptions/${userId}/upgrade`,
-    {
-      method: 'POST',
-      headers: {
-        'X-API-Key': process.env.SUBSCRIPTION_API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        productId: 'auto-landlord',
-        planId: planId,
-        paymentProofUrl: paymentProof.url,
-        paymentNote: paymentProof.note,
-      }),
+  const response = await fetch(`https://subs-api.fitzgeral.my.id/subscriptions/${userId}/upgrade`, {
+    method: 'POST',
+    headers: {
+      'X-API-Key': process.env.SUBSCRIPTION_API_KEY,
+      'Content-Type': 'application/json',
     },
-  )
+    body: JSON.stringify({
+      productId: 'auto-landlord',
+      planId: planId,
+      paymentProofUrl: paymentProof.url,
+      paymentNote: paymentProof.note,
+    }),
+  })
 
   if (!response.ok) {
     const error = await response.json()
@@ -520,6 +521,358 @@ export default function SubscriptionPage({ userId }) {
   )
 }
 ```
+
+---
+
+## 🎯 Working with Flexible Limits
+
+The subscription platform uses a **flexible limits system** that supports any product type. Each plan's `limits` field is a JSON object containing product-specific restrictions.
+
+### Understanding Limits Structure
+
+Plans include a `limits` object that can contain any key-value pairs relevant to your product:
+
+```typescript
+interface PlanLimits {
+  [key: string]: number | boolean | string
+}
+
+interface Plan {
+  id: string
+  name: string
+  price: number
+  features: string
+  limits: PlanLimits // Flexible JSON object
+  isActive: boolean
+}
+```
+
+### Common Limit Types by Product
+
+**Property Management SaaS:**
+
+```json
+{
+  "properties": 50,
+  "tenants": 200,
+  "storage_gb": 10,
+  "priority_support": true
+}
+```
+
+**Project Management SaaS:**
+
+```json
+{
+  "projects": 10,
+  "team_members": 5,
+  "tasks_per_project": 1000,
+  "integrations": true
+}
+```
+
+**E-Commerce SaaS:**
+
+```json
+{
+  "products": 100,
+  "orders_per_month": 500,
+  "payment_gateways": 2,
+  "analytics": true
+}
+```
+
+### Checking Limits in Your Application
+
+#### Method 1: Basic Limit Check
+
+```typescript
+// lib/limits.ts
+interface UserLimits {
+  properties?: number
+  users?: number
+  storage_gb?: number
+  analytics?: boolean
+  [key: string]: number | boolean | string | undefined
+}
+
+export function checkLimit(
+  subscription: Subscription | null,
+  limitKey: keyof UserLimits,
+  currentUsage: number,
+): { allowed: boolean; limit: number | boolean; message: string } {
+  // No subscription = free tier limits
+  if (!subscription || subscription.status !== 'active') {
+    return {
+      allowed: false,
+      limit: 0,
+      message: 'Please subscribe to access this feature',
+    }
+  }
+
+  const limit = subscription.plan?.limits?.[limitKey]
+
+  // Feature doesn't exist in limits = unlimited
+  if (limit === undefined) {
+    return { allowed: true, limit: Infinity, message: 'Unlimited' }
+  }
+
+  // Boolean limit (feature flag)
+  if (typeof limit === 'boolean') {
+    return {
+      allowed: limit,
+      limit: limit,
+      message: limit ? 'Enabled' : 'Not available in your plan',
+    }
+  }
+
+  // Numeric limit
+  if (typeof limit === 'number') {
+    const allowed = currentUsage < limit
+    return {
+      allowed,
+      limit,
+      message: allowed ? `${currentUsage}/${limit} used` : `Limit reached (${limit} maximum)`,
+    }
+  }
+
+  return { allowed: false, limit: 0, message: 'Invalid limit type' }
+}
+```
+
+#### Method 2: React Hook for Limits
+
+```typescript
+// hooks/useSubscriptionLimits.ts
+import { useEffect, useState } from 'react'
+import { fetchSubscription } from '@/lib/subscription'
+
+export function useSubscriptionLimits(userId: string) {
+  const [subscription, setSubscription] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      const sub = await fetchSubscription(userId)
+      setSubscription(sub)
+      setLoading(false)
+    }
+    load()
+  }, [userId])
+
+  const checkLimit = (key: string, currentUsage: number = 0) => {
+    if (!subscription?.plan?.limits) {
+      return { allowed: false, limit: 0, remaining: 0 }
+    }
+
+    const limit = subscription.plan.limits[key]
+
+    // Boolean feature flag
+    if (typeof limit === 'boolean') {
+      return { allowed: limit, limit, remaining: limit ? Infinity : 0 }
+    }
+
+    // Numeric limit
+    if (typeof limit === 'number') {
+      return {
+        allowed: currentUsage < limit,
+        limit,
+        remaining: Math.max(0, limit - currentUsage),
+      }
+    }
+
+    return { allowed: true, limit: Infinity, remaining: Infinity }
+  }
+
+  const hasFeature = (featureName: string): boolean => {
+    const limit = subscription?.plan?.limits?.[featureName]
+    return limit === true || limit === undefined
+  }
+
+  return {
+    subscription,
+    loading,
+    checkLimit,
+    hasFeature,
+    limits: subscription?.plan?.limits || {},
+  }
+}
+```
+
+### Usage Examples
+
+#### Example 1: Property Limit Check
+
+```tsx
+import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits'
+
+function AddPropertyButton({ userId, currentPropertyCount }) {
+  const { checkLimit, loading } = useSubscriptionLimits(userId)
+
+  const handleAddProperty = async () => {
+    const check = checkLimit('properties', currentPropertyCount)
+
+    if (!check.allowed) {
+      alert(`You've reached your limit of ${check.limit} properties. Please upgrade!`)
+      return
+    }
+
+    // Proceed with adding property
+    await createProperty()
+  }
+
+  if (loading) return <div>Loading...</div>
+
+  const check = checkLimit('properties', currentPropertyCount)
+
+  return (
+    <div>
+      <button onClick={handleAddProperty} disabled={!check.allowed}>
+        Add Property ({check.remaining} remaining)
+      </button>
+      {!check.allowed && (
+        <p className='text-red-500'>
+          Limit reached. <a href='/upgrade'>Upgrade now</a>
+        </p>
+      )}
+    </div>
+  )
+}
+```
+
+#### Example 2: Feature Flag Check
+
+```tsx
+function AnalyticsTab({ userId }) {
+  const { hasFeature, loading } = useSubscriptionLimits(userId)
+
+  if (loading) return <div>Loading...</div>
+
+  if (!hasFeature('analytics')) {
+    return (
+      <div className='text-center p-8'>
+        <h3>Analytics Not Available</h3>
+        <p>Upgrade to Pro plan to access analytics</p>
+        <a href='/plans'>View Plans</a>
+      </div>
+    )
+  }
+
+  return <AnalyticsDashboard />
+}
+```
+
+#### Example 3: Progressive Limit Display
+
+```tsx
+function SubscriptionStatus({ userId }) {
+  const { subscription, limits, checkLimit } = useSubscriptionLimits(userId)
+  const userStats = useUserStats() // Your custom hook
+
+  if (!subscription) {
+    return <div>No active subscription</div>
+  }
+
+  return (
+    <div className='space-y-4'>
+      <h2>{subscription.plan?.name}</h2>
+
+      {/* Numeric Limits */}
+      {Object.entries(limits).map(([key, limit]) => {
+        if (typeof limit === 'number') {
+          const usage = userStats[key] || 0
+          const check = checkLimit(key, usage)
+          const percentage = (usage / limit) * 100
+
+          return (
+            <div key={key}>
+              <div className='flex justify-between'>
+                <span>{key}</span>
+                <span>
+                  {usage} / {limit}
+                </span>
+              </div>
+              <div className='w-full bg-gray-200 h-2 rounded'>
+                <div
+                  className={`h-2 rounded ${percentage > 90 ? 'bg-red-500' : 'bg-blue-500'}`}
+                  style={{ width: `${Math.min(percentage, 100)}%` }}
+                />
+              </div>
+            </div>
+          )
+        }
+        return null
+      })}
+
+      {/* Feature Flags */}
+      <div className='space-y-2'>
+        {Object.entries(limits).map(([key, limit]) => {
+          if (typeof limit === 'boolean') {
+            return (
+              <div key={key} className='flex items-center gap-2'>
+                <span className={limit ? 'text-green-500' : 'text-gray-400'}>
+                  {limit ? '✓' : '✗'}
+                </span>
+                <span>{key.replace(/_/g, ' ')}</span>
+              </div>
+            )
+          }
+          return null
+        })}
+      </div>
+    </div>
+  )
+}
+```
+
+### Backend Limit Enforcement
+
+Always enforce limits on your backend APIs:
+
+```typescript
+// api/properties/create.ts
+import { fetchSubscription } from '@/lib/subscription'
+import { checkLimit } from '@/lib/limits'
+
+export async function POST(req: Request) {
+  const { userId, propertyData } = await req.json()
+
+  // 1. Get user's subscription
+  const subscription = await fetchSubscription(userId)
+
+  // 2. Get current usage
+  const currentProperties = await db
+    .select({ count: count() })
+    .from(properties)
+    .where(eq(properties.userId, userId))
+
+  // 3. Check limit
+  const limitCheck = checkLimit(subscription, 'properties', currentProperties[0].count)
+
+  if (!limitCheck.allowed) {
+    return Response.json(
+      { error: `Property limit reached (${limitCheck.limit} maximum)` },
+      { status: 403 },
+    )
+  }
+
+  // 4. Create property
+  const newProperty = await db.insert(properties).values({
+    ...propertyData,
+    userId,
+  })
+
+  return Response.json(newProperty, { status: 201 })
+}
+```
+
+### Best Practices
+
+1. **Always Check Limits on Backend**: Never rely on client-side checks alone
+2. **Cache Subscription Data**: Use SWR or React Query to avoid excessive API calls
+3. **Show Proactive Warnings**: Alert users when approaching limits (e.g., 80% usage)
+4. **Graceful Degradation**: Disable features smoothly when limits are reached
+5. **Clear Upgrade Path**: Always provide a visible upgrade CTA when limits are hit
 
 ---
 

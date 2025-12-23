@@ -44,8 +44,9 @@ export const plans = sqliteTable('plans', {
   features: text('features').notNull(),
   // Comma-separated feature list for display
 
-  maxProperties: integer('max_properties').notNull(),
-  // Feature gate: maximum properties allowed
+  limits: text('limits').notNull(),
+  // JSON object containing plan limits (e.g., {"properties": 50, "users": 10})
+  // Supports any product-specific limit structure
 
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   // Administrative flag to hide/show plans

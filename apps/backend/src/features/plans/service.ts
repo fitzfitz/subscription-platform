@@ -8,8 +8,15 @@ export class PlansService {
     this.db = db
   }
   async getActivePlans(productId: string) {
-    return this.db.query.plans.findMany({
+    const rawPlans = await this.db.query.plans.findMany({
       where: (plans, { eq, and }) => and(eq(plans.productId, productId), eq(plans.isActive, true)),
     })
+
+    // Parse JSON limits field
+    return rawPlans.map((plan) => ({
+      ...plan,
+      limits: typeof plan.limits === 'string' ? JSON.parse(plan.limits) : plan.limits,
+      createdAt: plan.createdAt.toISOString(),
+    }))
   }
 }

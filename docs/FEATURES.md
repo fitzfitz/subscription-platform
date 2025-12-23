@@ -63,10 +63,23 @@ You can manage "Auto-Landlord", "Hotel Manager", and "Inventory System" all from
   "slug": "pro",
   "price": 250000,
   "features": "50 properties, Priority support, Analytics",
-  "maxProperties": 50,
+  "limits": {
+    "properties": 50,
+    "tenants": 200,
+    "analytics": true,
+    "priority_support": true
+  },
   "isActive": true
 }
 ```
+
+**Flexible Limits**:
+
+The `limits` field is a JSON object that can contain any product-specific limits:
+
+- **Property Management**: `{"properties": 50, "tenants": 200, "storage_gb": 10}`
+- **Project Management**: `{"projects": 10, "team_members": 5, "tasks_per_project": 1000}`
+- **Email Marketing**: `{"contacts": 5000, "emails_per_month": 10000, "campaigns": 3}`
 
 **Admin Panel:**
 

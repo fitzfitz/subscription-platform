@@ -8,7 +8,7 @@ export const planSchema = z.object({
   slug: z.string(),
   price: z.number(),
   features: z.string(),
-  maxProperties: z.number(),
+  limits: z.record(z.union([z.number(), z.boolean(), z.string()])),
   isActive: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -35,7 +35,7 @@ export const createPlanSchema = z.object({
   slug: z.string().min(1, 'Slug is required'),
   price: z.number().min(0, 'Price must be positive'),
   features: z.string().optional().default(''),
-  maxProperties: z.number().min(0, 'Max properties must be positive').optional().default(10),
+  limits: z.record(z.union([z.number(), z.boolean(), z.string()])),
   isActive: z.boolean().optional().default(true),
 })
 
@@ -47,7 +47,7 @@ export const updatePlanSchema = z.object({
   slug: z.string().min(1).optional(),
   price: z.number().min(0).optional(),
   features: z.string().optional(),
-  maxProperties: z.number().min(0).optional(),
+  limits: z.record(z.union([z.number(), z.boolean(), z.string()])).optional(),
   isActive: z.boolean().optional(),
 })
 

@@ -20,8 +20,8 @@ async function generateSeed() {
     `INSERT OR IGNORE INTO products (id, name, api_key_hash, is_active, created_at) VALUES ('auto-landlord', 'Auto-Landlord', '${DEV_API_KEY_HASH}', 1, ${now});`,
 
     `-- Seeding Plans (Auto-Landlord)`,
-    `INSERT OR IGNORE INTO plans (id, product_id, name, slug, price, features, max_properties, is_active, created_at) VALUES ('plan-001', 'auto-landlord', 'Starter', 'auto-landlord-starter', 0, 'Up to 2 properties,Basic tenant management,Email support', 2, 1, ${now});`,
-    `INSERT OR IGNORE INTO plans (id, product_id, name, slug, price, features, max_properties, is_active, created_at) VALUES ('plan-002', 'auto-landlord', 'Pro', 'auto-landlord-pro', 2900, 'Unlimited properties,Advanced reporting,Priority support', 999999, 1, ${now});`,
+    `INSERT OR IGNORE INTO plans (id, product_id, name, slug, price, features, limits, is_active, created_at) VALUES ('plan-001', 'auto-landlord', 'Starter', 'auto-landlord-starter', 0, 'Up to 2 properties,Basic tenant management,Email support', '{"properties": 2}', 1, ${now});`,
+    `INSERT OR IGNORE INTO plans (id, product_id, name, slug, price, features, limits, is_active, created_at) VALUES ('plan-002', 'auto-landlord', 'Pro', 'auto-landlord-pro', 2900, 'Unlimited properties,Advanced reporting,Priority support', '{"properties": 999999}', 1, ${now});`,
   ]
 
   process.stdout.write(sqlStatements.join('\n') + '\n')

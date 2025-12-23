@@ -19,7 +19,7 @@ function PlanRow({ plan, productName }: PlanRowProps) {
   const [editData, setEditData] = useState({
     name: plan.name,
     price: plan.price,
-    maxProperties: plan.maxProperties,
+    limits: JSON.stringify(plan.limits, null, 2),
     features: plan.features,
   })
 
@@ -27,11 +27,16 @@ function PlanRow({ plan, productName }: PlanRowProps) {
   const deleteMutation = useDeletePlan()
 
   const handleUpdate = async () => {
-    await updateMutation.mutateAsync({
-      id: plan.id,
-      data: editData,
-    })
-    setIsEditing(false)
+    try {
+      const parsedLimits = JSON.parse(editData.limits)
+      await updateMutation.mutateAsync({
+        id: plan.id,
+        data: { ...editData, limits: parsedLimits },
+      })
+      setIsEditing(false)
+    } catch (e) {
+      alert('Invalid JSON format for limits')
+    }
   }
 
   const handleDelete = async () => {
@@ -70,15 +75,13 @@ function PlanRow({ plan, productName }: PlanRowProps) {
                 className='mt-1'
               />
             </div>
-            <div>
-              <Label className='text-xs'>Max Properties</Label>
-              <Input
-                type='number'
-                value={editData.maxProperties}
-                onChange={(e) =>
-                  setEditData({ ...editData, maxProperties: Number(e.target.value) })
-                }
-                className='mt-1'
+            <div className='col-span-2'>
+              <Label className='text-xs'>Limits (JSON)</Label>
+              <textarea
+                value={editData.limits}
+                onChange={(e) => setEditData({ ...editData, limits: e.target.value })}
+                className='mt-1 w-full min-h-[60px] px-3 py-2 border border-input rounded-lg bg-background font-mono text-xs'
+                placeholder='{"properties": 10, "users": 5}'
               />
             </div>
             <div>
@@ -161,14 +164,21 @@ function CreatePlanForm({ onCancel, onSuccess }: CreatePlanFormProps) {
     slug: '',
     price: 0,
     features: '',
-    maxProperties: 10,
+    limits: {},
     isActive: true,
   })
 
+  const [limitsJson, setLimitsJson] = useState('{"properties": 10}')
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await createMutation.mutateAsync(formData)
-    onSuccess()
+    try {
+      const parsedLimits = JSON.parse(limitsJson)
+      await createMutation.mutateAsync({ ...formData, limits: parsedLimits })
+      onSuccess()
+    } catch (e) {
+      alert('Invalid JSON format for limits')
+    }
   }
 
   const generateSlug = (name: string) => {
@@ -243,17 +253,18 @@ function CreatePlanForm({ onCancel, onSuccess }: CreatePlanFormProps) {
                 {formData.price > 0 ? `$${(formData.price / 100).toFixed(2)}/month` : 'Free'}
               </p>
             </div>
-            <div>
-              <Label>Max Properties</Label>
-              <Input
-                type='number'
-                value={formData.maxProperties}
-                onChange={(e) =>
-                  setFormData({ ...formData, maxProperties: Number(e.target.value) })
-                }
-                className='mt-1'
-                min={0}
+            <div className='col-span-2'>
+              <Label>Limits (JSON) *</Label>
+              <textarea
+                value={limitsJson}
+                onChange={(e) => setLimitsJson(e.target.value)}
+                placeholder='{"properties": 10, "users": 5, "storage_gb": 100}'
+                className='mt-1 w-full min-h-[80px] px-3 py-2 border border-input rounded-lg bg-background font-mono text-sm'
+                required
               />
+              <p className='text-xs text-muted-foreground mt-1'>
+                Define limits as JSON. Example: {'{"properties": 50, "users": 10}'}
+              </p>
             </div>
             <div>
               <Label>Features</Label>

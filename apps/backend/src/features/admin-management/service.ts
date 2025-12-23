@@ -118,12 +118,20 @@ export class AdminManagementService {
   }
 
   async listProducts() {
-    return this.db.query.products.findMany({
+    const rawProducts = await this.db.query.products.findMany({
       orderBy: [desc(products.createdAt)],
       with: {
         plans: true,
       },
     })
+
+    return rawProducts.map((product) => ({
+      ...product,
+      plans: product.plans.map((plan) => ({
+        ...plan,
+        limits: JSON.parse(plan.limits),
+      })),
+    }))
   }
 
   async getProductById(id: string) {
@@ -202,7 +210,7 @@ export class AdminManagementService {
     slug: string
     price: number
     features: string
-    maxProperties: number
+    limits: Record<string, string | number | boolean>
     isActive?: boolean
   }) {
     const [plan] = await this.db
@@ -213,18 +221,29 @@ export class AdminManagementService {
         slug: data.slug,
         price: data.price,
         features: data.features,
-        maxProperties: data.maxProperties,
+        limits: JSON.stringify(data.limits),
         isActive: data.isActive ?? true,
       })
       .returning()
 
-    return plan
+    return {
+      ...plan,
+      limits: JSON.parse(plan.limits),
+    }
   }
 
   async listPlans(productId?: string) {
+    let rawPlans
     if (productId) {
-      return this.db.query.plans.findMany({
+      rawPlans = await this.db.query.plans.findMany({
         where: eq(plans.productId, productId),
+        orderBy: [desc(plans.createdAt)],
+        with: {
+          product: true,
+        },
+      })
+    } else {
+      rawPlans = await this.db.query.plans.findMany({
         orderBy: [desc(plans.createdAt)],
         with: {
           product: true,
@@ -232,22 +251,27 @@ export class AdminManagementService {
       })
     }
 
-    return this.db.query.plans.findMany({
-      orderBy: [desc(plans.createdAt)],
-      with: {
-        product: true,
-      },
-    })
+    return rawPlans.map((plan) => ({
+      ...plan,
+      limits: JSON.parse(plan.limits),
+    }))
   }
 
   async getPlanById(id: string) {
-    return this.db.query.plans.findFirst({
+    const plan = await this.db.query.plans.findFirst({
       where: eq(plans.id, id),
       with: {
         product: true,
         subscriptions: true,
       },
     })
+
+    if (!plan) return null
+
+    return {
+      ...plan,
+      limits: JSON.parse(plan.limits),
+    }
   }
 
   async updatePlan(
@@ -257,13 +281,35 @@ export class AdminManagementService {
       slug?: string
       price?: number
       features?: string
-      maxProperties?: number
+      limits?: Record<string, string | number | boolean>
       isActive?: boolean
     },
   ) {
-    const [updated] = await this.db.update(plans).set(data).where(eq(plans.id, id)).returning()
+    const updateData = { ...data } as {
+      name?: string
+      slug?: string
+      price?: number
+      features?: string
+      limits?: string
+      isActive?: boolean
+    }
 
-    return updated
+    if (data.limits) {
+      updateData.limits = JSON.stringify(data.limits)
+    }
+
+    const [updated] = await this.db
+      .update(plans)
+      .set(updateData)
+      .where(eq(plans.id, id))
+      .returning()
+
+    if (!updated) return null
+
+    return {
+      ...updated,
+      limits: JSON.parse(updated.limits),
+    }
   }
 
   async deletePlan(id: string) {
