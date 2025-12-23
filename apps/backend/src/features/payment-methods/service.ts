@@ -1,5 +1,5 @@
 import { DrizzleD1Database } from 'drizzle-orm/d1'
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import * as schema from '@repo/db'
 import { paymentMethods, productPaymentMethods } from '@repo/db'
 

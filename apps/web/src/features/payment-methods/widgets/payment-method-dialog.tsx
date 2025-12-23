@@ -142,7 +142,7 @@ export function PaymentMethodDialog({ method, open, onClose }: PaymentMethodDial
                 onValueChange={(value) => setValue('type', value as 'manual' | 'automated')}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder='Select type' />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value='manual'>Manual</SelectItem>
