@@ -130,12 +130,11 @@ jobs:
           VITE_API_URL: ${{ secrets.API_URL }}
           VITE_APP_NAME: Subscription Platform
 
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: subscription-platform
-          directory: apps/web/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          # No branch specified = production deployment
+      - name: Deploy to Cloudflare Pages (Production)
+        run: |
+          npx wrangler pages deploy apps/web/dist \
+            --project-name=subscription-platform \
+            --branch=master
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
