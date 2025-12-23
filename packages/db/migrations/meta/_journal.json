@@ -36,6 +36,13 @@
       "when": 1766424815883,
       "tag": "0004_clean_rogue",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1766451919668,
+      "tag": "0005_charming_shard",
+      "breakpoints": true
     }
   ]
 }

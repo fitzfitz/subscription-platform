@@ -11,6 +11,7 @@ import { registerPlans } from './features/plans'
 import { registerSubscriptions } from './features/subscriptions'
 import { registerAdmin } from './features/admin'
 import { registerAdminManagement } from './features/admin-management'
+import { registerPaymentMethods } from './features/payment-methods'
 
 const app = new OpenAPIHono<{ Bindings: Bindings; Variables: Variables }>()
 
@@ -93,9 +94,9 @@ app.get('/ui', swaggerUI({ url: '/doc' }))
 // Authenticated Routes - Product API Key Auth
 app.use('/plans/*', apiKeyAuth)
 app.use('/subscriptions/*', apiKeyAuth)
-app.use('/admin/*', apiKeyAuth)
 
 // Authenticated Routes - Admin Basic Auth
+app.use('/admin/*', adminAuth)
 app.use('/manage/*', adminAuth)
 
 // Feature Routes (protected by auth middleware above)
@@ -103,6 +104,7 @@ registerPlans(app)
 registerSubscriptions(app)
 registerAdmin(app)
 registerAdminManagement(app)
+registerPaymentMethods(app)
 
 const _routes = app
 

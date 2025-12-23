@@ -8,7 +8,7 @@ const getPendingRoute = createRoute({
   path: '/admin/pending',
   summary: 'List Pending Subscriptions',
   description: 'Retrieve all subscriptions awaiting admin verification.',
-  security: [{ ApiKeyAuth: [] }],
+  security: [{ AdminAuth: [] }],
   responses: {
     200: {
       description: 'List of pending subscriptions',
@@ -55,7 +55,7 @@ const verifyRoute = createRoute({
   path: '/admin/verify',
   summary: 'Verify Subscription',
   description: 'Approve or reject a pending subscription.',
-  security: [{ ApiKeyAuth: [] }],
+  security: [{ AdminAuth: [] }],
   request: {
     body: {
       content: {

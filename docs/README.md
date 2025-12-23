@@ -1,221 +1,161 @@
 # Subscription Platform Documentation
 
-Comprehensive guide for building a centralized subscription service to power multiple SaaS products.
+**Platform Version:** 1.0 (Phase 2 Complete)  
+**Last Updated:** 2025-12-23
+
+---
 
 ## 📚 Documentation Index
 
-Read these documents in order for best understanding:
+### For Product Developers
 
-### 1. [Overview](./00_overview.md)
+- **[API Integration Guide](./api_integration_guide.md)** - Complete guide for integrating your product app
+  - Authentication with API keys
+  - Available endpoints
+  - Payment flow walkthrough
+  - Code examples (JavaScript/TypeScript, React)
+  - Error handling
 
-**Start here** - Understand the big picture, architecture, and design principles.
+### For Administrators
 
-**Topics**:
+- **[Admin Guide](./ADMIN_GUIDE.md)** - How to use the admin panel
+  - Product and plan management
+  - User management
+  - Payment method configuration
+  - Subscription verification
+- **[Deployment Guide](./deployment.md)** - How to deploy the application
+  - CI/CD setup
+  - Environment configuration
+  - Migration management
 
-- Purpose and goals
-- High-level architecture diagrams
-- Technology stack
-- Request flow
-- Core entities
+### For Platform Developers & Technical Reference
 
----
-
-### 2. [Database Schema](./01_database_schema.md)
-
-Deep dive into data models and relationships.
-
-**Topics**:
-
-- Entity relationship diagram
-- Table definitions (products, plans, users, subscriptions)
-- Indexes for performance
-- Key relationships
-- Migration strategy
-
----
-
-### 3. [API Endpoints](./02_api_endpoints.md)
-
-Complete API reference with examples.
-
-**Topics**:
-
-- Authentication with API keys
-- User subscription endpoints
-- Manual payment upgrade flow
-- Admin verification endpoints
-- Error responses and rate limits
-- Integration examples
+- **[Features Documentation](./FEATURES.md)** - Complete feature list
+  - All 10 major features explained
+  - Security capabilities
+  - Admin panel features
+  - Use cases and workflows
+- **[Database Schema](./01_database_schema.md)** - Database structure and relationships
+  - ERD diagrams
+  - Table definitions
+  - Relations
+  - Migration history
+- **[Security Practices](./04_security.md)** - Authentication, authorization, and security
+  - API key authentication
+  - Admin authentication
+  - Input validation
+  - Rate limiting
 
 ---
 
-### 4. [Features](./03_features.md)
+## Quick Links
 
-Feature breakdown and implementation approach.
-
-**Topics**:
-
-- Multi-product support
-- Manual payment verification
-- Feature gating
-- API key management
-- Rate limiting
-- Future features (Stripe, usage metering, analytics)
+- **Interactive API Docs:** `https://subs-api.fitzgeral.my.id/ui`
+- **Base API URL:** `https://subs-api.fitzgeral.my.id`
+- **Admin Panel:** Configure your admin URL
+- **GitHub Repository:** See project README
 
 ---
 
-### 5. [Security Model](./04_security.md)
+## Getting Started
 
-Security architecture and best practices.
+### For Product Developers
 
-**Topics**:
+1. Read the [API Integration Guide](./api_integration_guide.md)
+2. Get your API key from the platform administrator
+3. Start integrating subscription checks into your app
+4. Test with the interactive API docs at `/ui`
 
-- Threat model
-- Defense layers (TLS, API keys, input validation)
-- SQL injection prevention
-- File upload security
-- Admin access control
-- Incident response procedures
-- Compliance (GDPR, PCI DSS)
+### For Administrators
 
----
+1. Access the admin panel with your credentials
+2. Create your first product
+3. Configure plans and pricing
+4. Set up payment methods
+5. Start reviewing and approving subscriptions
 
-### 6. [Deployment Guide](./05_deployment.md)
+### For Platform Developers
 
-Step-by-step deployment and maintenance.
-
-**Topics**:
-
-- Prerequisites and project setup
-- Database configuration
-- API key generation
-- Local development
-- Production deployment to Cloudflare
-- Auto-Landlord integration
-- Monitoring and troubleshooting
-- Cost estimates
+1. Review the [Features Documentation](./FEATURES.md) to understand capabilities
+2. Study the [Database Schema](./01_database_schema.md)
+3. Check [Security Practices](./04_security.md)
+4. Follow the [Deployment Guide](./deployment.md) for setup
 
 ---
 
-## 🚀 Quick Start
-
-### For Product Managers
-
-1. Read [Overview](./00_overview.md) to understand the vision
-2. Review [Features](./03_features.md) for roadmap planning
-3. Check [Deployment Guide](./05_deployment.md) for cost estimates
-
-### For Developers
-
-1. Read [Overview](./00_overview.md) for architecture
-2. Study [Database Schema](./01_database_schema.md) for data models
-3. Review [API Endpoints](./02_api_endpoints.md) for integration
-4. Follow [Deployment Guide](./05_deployment.md) for setup
-
-### For Security Engineers
-
-1. Read [Security Model](./04_security.md) first
-2. Review [API Endpoints](./02_api_endpoints.md) for authentication
-3. Check [Deployment Guide](./05_deployment.md) for secure deployment
-
----
-
-## 🎯 Key Decisions Needed
-
-Before implementation, decide on:
-
-1. **Billing Model**: Per-product vs. cross-product subscriptions
-2. **Admin UI Location**: Separate app or integrate with Auto-Landlord?
-3. **Payment Providers**: Manual only, or also Stripe/PayPal?
-4. **Currency Support**: USD only or multi-currency from day 1?
-
-See [Overview](./00_overview.md#user-review-required) for detailed discussion.
-
----
-
-## 🏗️ Architecture at a Glance
+## Documentation Structure
 
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  Auto-Landlord  │     │   Product B     │     │   Product C     │
-│  (React + Vite) │     │  (Next.js)      │     │   (Vue)         │
-└────────┬────────┘     └────────┬────────┘     └────────┬────────┘
-         │                       │                       │
-         │        API Key + Clerk UserID                 │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                    ┌────────────▼────────────┐
-                    │  Subscription Platform  │
-                    │  (Cloudflare Worker)    │
-                    └────────────┬────────────┘
-                                 │
-                    ┌────────────▼────────────┐
-                    │  D1 Database (SQLite)   │
-                    │  - Products             │
-                    │  - Plans                │
-                    │  - Subscriptions        │
-                    │  - Users                │
-                    └─────────────────────────┘
+docs/
+├── README.md                    # This file - Documentation hub
+├── api_integration_guide.md     # API integration for product developers
+├── FEATURES.md                  # Complete features documentation
+├── ADMIN_GUIDE.md              # Admin panel usage guide
+├── deployment.md               # Deployment instructions
+├── 01_database_schema.md       # Database reference
+└── 04_security.md              # Security best practices
 ```
 
 ---
 
-## 📊 Implementation Phases
+## What's New
 
-### ✅ Phase 1: MVP (Current)
+### Phase 2 (Current - Dec 2023)
 
-- [x] Manual payment verification
-- [x] Basic feature gating
-- [x] Single product support (Auto-Landlord)
+- ✅ Multi-provider payment architecture
+- ✅ Payment method management
+- ✅ Product-level payment configuration
+- ✅ Enhanced security (input validation, delete protection)
+- ✅ Manual payment verification UI
 
-### 🚧 Phase 2: Multi-Product
+### Phase 1 (Completed)
 
-- [ ] Products table and API key system
-- [ ] Product-scoped subscriptions
-- [ ] Rate limiting per product
-- [ ] Admin dashboard integration
+- ✅ Multi-product support
+- ✅ Plan management
+- ✅ Manual payment verification (backend)
+- ✅ API key authentication
+- ✅ Admin panel
+- ✅ User management
 
-### 📅 Phase 3: Automation
+### Coming in Phase 3
 
-- [ ] Stripe webhook integration
-- [ ] Automated approval flow
-- [ ] Email notifications
-- [ ] Analytics dashboard
-
-### 🔮 Phase 4: Advanced
-
-- [ ] Usage-based billing
-- [ ] Multi-currency support
-- [ ] Team/organization accounts
-- [ ] Customer self-service portal
+- 🔄 Automated payment gateways (Stripe, Midtrans)
+- 🔄 Webhook support
+- 🔄 Recurring billing
+- 🔄 Usage-based billing
+- 🔄 Email notifications
 
 ---
 
-## 🤝 Contributing
+## Support & Resources
 
-When updating this documentation:
+**For API Issues:**
 
-1. **Keep it current**: Update diagrams when architecture changes
-2. **Be specific**: Include code examples, not just concepts
-3. **Think audience**: Consider both technical and non-technical readers
-4. **Version control**: Note breaking changes prominently
+- Check the [API Integration Guide](./api_integration_guide.md)
+- Review the interactive docs at `/ui`
+- Contact your platform administrator
 
----
+**For Admin Issues:**
 
-## 📞 Support
+- Review the [Admin Guide](./ADMIN_GUIDE.md)
+- Check the [Features Documentation](./FEATURES.md)
 
-- **Technical Questions**: Check [04_security.md](./04_security.md) and [05_deployment.md](./05_deployment.md)
-- **Implementation Help**: Review [02_api_endpoints.md](./02_api_endpoints.md) for integration guide
-- **Architecture Decisions**: See [00_overview.md](./00_overview.md) and [03_features.md](./03_features.md)
+**For Development:**
 
----
-
-## 📝 License
-
-Internal documentation for Auto-Landlord subscription platform.
+- Study the [Database Schema](./01_database_schema.md)
+- Review [Security Practices](./04_security.md)
+- Check the [Deployment Guide](./deployment.md)
 
 ---
 
-**Last Updated**: 2024-01-20  
-**Version**: 1.0.0  
-**Maintainer**: Development Team
+## Documentation Conventions
+
+- **Required fields** are marked with `*`
+- **Code examples** are provided in JavaScript/TypeScript
+- **API endpoints** use the base URL `https://subs-api.fitzgeral.my.id`
+- **Authentication** methods are clearly specified per endpoint
+- **Status codes** follow standard HTTP conventions
+
+---
+
+Last updated: 2025-12-23

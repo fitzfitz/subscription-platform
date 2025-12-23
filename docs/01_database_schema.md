@@ -1,14 +1,20 @@
 # Database Schema
 
-Complete database schema for the subscription platform using Drizzle ORM with SQLite.
+Complete database schema for the subscription platform using Drizzle ORM with SQLite (Cloudflare D1).
+
+**Last Updated:** 2025-12-23 (Phase 2 Complete)
 
 ## Entity Relationship Diagram
 
 ```mermaid
 erDiagram
+    PRODUCTS ||--o{ PLANS : "has many"
     PRODUCTS ||--o{ SUBSCRIPTIONS : "has many"
+    PRODUCTS ||--o{ PRODUCT_PAYMENT_METHODS : "has many"
     PLANS ||--o{ SUBSCRIPTIONS : "has many"
     USERS ||--o{ SUBSCRIPTIONS : "has many"
+    PAYMENT_METHODS ||--o{ PRODUCT_PAYMENT_METHODS : "has many"
+    PAYMENT_METHODS ||--o{ SUBSCRIPTIONS : "used by"
 
     PRODUCTS {
         text id PK
@@ -30,10 +36,29 @@ erDiagram
     }
 
     USERS {
-        text id PK "Clerk UserID"
+        text id PK
         text email UK
+        integer created_at
+        integer updated_at
+    }
+
+    PAYMENT_METHODS {
+        text id PK
+        text slug UK
         text name
-        text role
+        text type
+        text provider
+        text config
+        integer is_active
+        integer created_at
+    }
+
+    PRODUCT_PAYMENT_METHODS {
+        text id PK
+        text product_id FK
+        text payment_method_id FK
+        integer display_order
+        integer is_default
         integer created_at
     }
 
@@ -42,6 +67,7 @@ erDiagram
         text user_id FK
         text plan_id FK
         text product_id FK
+        text payment_method_id FK
         text status
         text provider
         text external_id
@@ -49,6 +75,18 @@ erDiagram
         text payment_note
         integer start_date
         integer end_date
+        integer created_at
+        integer updated_at
+    }
+
+    ADMIN_USERS {
+        text id PK
+        text email UK
+        text password_hash
+        text name
+        text role
+        integer is_active
+        integer last_login_at
         integer created_at
         integer updated_at
     }

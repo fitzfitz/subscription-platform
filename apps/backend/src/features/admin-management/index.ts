@@ -305,6 +305,60 @@ const deleteProductRoute = createRoute({
   },
 })
 
+const updateProductPaymentMethodsRoute = createRoute({
+  method: 'patch',
+  path: '/manage/products/{id}/payment-methods',
+  summary: 'Configure Product Payment Methods',
+  description: 'Set which payment methods are enabled for a product',
+  security: [{ AdminAuth: [] }],
+  request: {
+    params: z.object({ id: z.string() }),
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            methods: z.array(
+              z.object({
+                paymentMethodId: z.string(),
+                displayOrder: z.number(),
+                isDefault: z.boolean(),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Payment methods configured',
+      content: {
+        'application/json': {
+          schema: z.array(
+            z.object({
+              id: z.string(),
+              slug: z.string(),
+              name: z.string(),
+              type: z.enum(['manual', 'automated']),
+              isActive: z.boolean(),
+              displayOrder: z.number(),
+              isDefault: z.boolean(),
+            }),
+          ),
+        },
+      },
+    },
+    400: {
+      description: 'Bad Request',
+      content: { 'application/json': { schema: errorSchema } },
+    },
+    404: {
+      description: 'Product not found',
+      content: { 'application/json': { schema: errorSchema } },
+    },
+  },
+})
+
 // ==================== PLAN ROUTES ====================
 
 const createPlanRoute = createRoute({
@@ -788,6 +842,26 @@ export const registerAdminManagement = (
       return c.json({ success: true }, 200)
     } catch (_error) {
       return c.json({ error: 'Cannot delete product with existing plans or subscriptions' }, 400)
+    }
+  })
+
+  app.openapi(updateProductPaymentMethodsRoute, async (c) => {
+    const { id } = c.req.valid('param')
+    const { methods } = await c.req.json()
+    const db = createDb(c.env)
+    const service = new AdminManagementService(db)
+
+    try {
+      const result = await service.updateProductPaymentMethods(id, methods)
+      return c.json(
+        result.map((m) => ({
+          ...m,
+          type: m.type as 'manual' | 'automated',
+        })),
+        200,
+      )
+    } catch (error) {
+      return c.json({ error: (error as Error).message }, 400)
     }
   })
 

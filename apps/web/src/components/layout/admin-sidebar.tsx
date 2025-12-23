@@ -8,6 +8,8 @@ import {
   Logout01Icon,
   Menu01Icon,
   Cancel01Icon,
+  CreditCardIcon,
+  Task01Icon,
 } from '@hugeicons/core-free-icons'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -24,6 +26,8 @@ const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/admin', icon: DashboardSquare01Icon },
   { label: 'Products', href: '/admin/products', icon: Package01Icon },
   { label: 'Users', href: '/admin/users', icon: UserGroupIcon },
+  { label: 'Subscriptions', href: '/admin/subscriptions', icon: Task01Icon },
+  { label: 'Payment Methods', href: '/admin/payment-methods', icon: CreditCardIcon },
   { label: 'Settings', href: '/admin/settings', icon: Settings01Icon },
 ]
 

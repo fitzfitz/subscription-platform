@@ -1,97 +1,93 @@
-# Subscription Platform Monorepo
+# 🚀 Subscription Platform Monorepo
 
-A professional, scalable subscription management platform built with Hono, Cloudflare D1, Drizzle ORM, and React.
+[![Built with Hono](https://img.shields.io/badge/Built%20with-Hono-E36002?style=flat-square&logo=hono)](https://hono.dev)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?style=flat-square&logo=cloudflare)](https://workers.cloudflare.com)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 
-## 🚀 Quick Start
+A professional, scalable subscription management platform designed for SaaS products. Built with a modern edge-first stack for high performance and low cost.
+
+---
+
+## 📚 Documentation
+
+- **[Deployment Guide](docs/deployment.md)** - How our GitHub Actions CI/CD pipeline works.
+- **[Admin Guide](docs/ADMIN_GUIDE.md)** - How to use the admin dashboard to manage products & users.
+- **[Architecture Overview](docs/ARCHITECTURE.md)** - Deep dive into the tech stack and design decisions.
+- **[API Integration](docs/API_INTEGRATION.md)** - Guide for integrating your products with this platform.
+
+---
+
+## ⚡ Quick Start
+
+### Prerequisites
+
+- Node.js v20+
+- pnpm v9+
+- Cloudflare Account
+
+### 1. Setup
 
 ```bash
 git clone <repository-url>
 cd subscription-platform
 pnpm install
 pnpm setup
+```
+
+The `setup` script will:
+
+- Copy `.env.example` to `.env`
+- Run local database migrations
+- Seed initial data
+- Generate a development API key
+
+### 2. Run Locally
+
+```bash
 pnpm dev
 ```
 
-That's it! The setup script automatically:
-
-- Copies all environment files
-- Runs database migrations
-- Seeds initial data
-- Configures a dev API key
-
-**Dev API Key** (for testing): `auto-landlord_dev_local-development-key`
-
-### Endpoints
-
-| Service    | URL                      |
-| ---------- | ------------------------ |
-| Backend    | http://localhost:8787    |
-| Swagger UI | http://localhost:8787/ui |
-| Frontend   | http://localhost:5173    |
-
-### Prerequisites
-
-- **Node.js**: v20.0.0 or higher
-- **pnpm**: v9.0.0 or higher
+- **Frontend**: [http://localhost:5173](http://localhost:5173) (Login: `admin@example.com` / `admin123`)
+- **Backend**: [http://localhost:8787](http://localhost:8787)
+- **Swagger UI**: [http://localhost:8787/ui](http://localhost:8787/ui)
 
 ---
 
-## 📖 Manual Setup (Advanced)
+## 🔄 Deployment Strategy
 
-<details>
-<summary>Click to expand if you prefer step-by-step control</summary>
+We use a fully automated **GitHub Actions** pipeline:
 
-### 1. Environment Files
+1.  **Preview**: Push to `master` → Deploys frontend to a unique Preview URL.
+2.  **Production**: Push a tag (`v*`) → Deploys backend & frontend to Production.
 
-```bash
-cp apps/backend/.dev.vars.example apps/backend/.dev.vars
-cp packages/db/.env.example packages/db/.env
-cp apps/web/.env.example apps/web/.env
-```
-
-### 2. Database
-
-```bash
-cd apps/backend
-pnpm migrate:local
-pnpm seed:run
-```
-
-### 3. Generate Custom API Key
-
-```bash
-pnpm tsx scripts/generate-api-key.ts "Your-Product-Name"
-# Copy the SQL command from output
-pnpm db:execute --command "UPDATE products SET api_key_hash = '...' WHERE id = '...';"
-```
-
-### 4. Configure Frontend
-
-Add your API key to `apps/web/.env`:
-
-```env
-VITE_SUBSCRIPTION_API_KEY=your-product_prod_...
-```
-
-</details>
+For detailed instructions, see the **[Deployment Guide](docs/deployment.md)**.
 
 ---
 
 ## 🏗️ Project Structure
 
-- `apps/backend`: Hono API running on Cloudflare Workers. Features a modular, domain-driven architecture.
-- `apps/web`: React SPA frontend with Tailwind CSS and Shadcn UI.
-- `packages/db`: Shared database logic using Drizzle ORM, schema definitions, and migrations.
-- `packages/eslint-config`: Centralized linting rules used across the entire monorepo.
-- `scripts/`: Development utility scripts.
+This monorepo uses **TurboRepo**:
+
+- **`apps/backend`**: Hono API on Cloudflare Workers.
+- **`apps/web`**: React Admin Dashboard on Cloudflare Pages.
+- **`packages/db`**: Shared Drizzle ORM schema and migrations.
+- **`packages/eslint-config`**: Shared linting configuration.
+
+---
 
 ## 🛠️ Key Commands
 
-- `pnpm lint`: Run ESLint across all packages.
-- `pnpm typecheck`: Run TypeScript compilation check.
-- `pnpm build`: Build all applications for production.
-- `pnpm format`: Format code using Prettier.
+| Command            | Description                                 |
+| ------------------ | ------------------------------------------- |
+| `pnpm dev`         | Start all apps locally                      |
+| `pnpm build`       | Build all apps for production               |
+| `pnpm typecheck`   | Run TypeScript checks                       |
+| `pnpm format`      | Fix code formatting (Prettier)              |
+| `pnpm seed:remote` | Seed the **production** database (Careful!) |
+
+---
 
 ## 📄 License
 
-MIT
+MIT © Subscription Platform Team

@@ -23,6 +23,14 @@ const UsersPage = lazy(() => import('@/pages/users/page').then((m) => ({ default
 const UserDetailPage = lazy(() =>
   import('@/pages/users/detail-page').then((m) => ({ default: m.UserDetailPage })),
 )
+const PaymentMethodsPage = lazy(() =>
+  import('@/pages/payment-methods/page').then((m) => ({ default: m.PaymentMethodsPage })),
+)
+const PendingSubscriptionsPage = lazy(() =>
+  import('@/pages/subscriptions/pending-page').then((m) => ({
+    default: m.PendingSubscriptionsPage,
+  })),
+)
 
 // Loading fallback
 function PageLoader() {
@@ -98,6 +106,22 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <UserDetailPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'payment-methods',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <PaymentMethodsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'subscriptions',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <PendingSubscriptionsPage />
           </Suspense>
         ),
       },

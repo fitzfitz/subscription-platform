@@ -3,6 +3,7 @@ import { eq, desc, and } from 'drizzle-orm'
 import * as schema from '@repo/db'
 import { adminUsers, products, plans, users, subscriptions } from '@repo/db'
 import bcrypt from 'bcryptjs'
+import { PaymentMethodsService } from '../payment-methods/service'
 
 export class AdminManagementService {
   private readonly db: DrizzleD1Database<typeof schema>
@@ -172,6 +173,25 @@ export class AdminManagementService {
     const [deleted] = await this.db.delete(products).where(eq(products.id, id)).returning()
 
     return !!deleted
+  }
+
+  async updateProductPaymentMethods(
+    productId: string,
+    methods: Array<{
+      paymentMethodId: string
+      displayOrder: number
+      isDefault: boolean
+    }>,
+  ) {
+    // Delegate to PaymentMethodsService
+    const paymentMethodsService = new PaymentMethodsService(this.db)
+    return paymentMethodsService.updateProductPaymentMethods(productId, methods)
+  }
+
+  async getProductPaymentMethods(productId: string) {
+    // Delegate to PaymentMethodsService
+    const paymentMethodsService = new PaymentMethodsService(this.db)
+    return paymentMethodsService.getProductPaymentMethods(productId)
   }
 
   // ==================== PLANS ====================

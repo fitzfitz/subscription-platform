@@ -105,6 +105,62 @@ export const adminUsers = sqliteTable('admin_users', {
     .$defaultFn(() => new Date()),
 })
 
+// Payment Methods - Available payment providers and methods
+export const paymentMethods = sqliteTable('payment_methods', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+
+  slug: text('slug').notNull().unique(),
+  // Unique identifier (e.g., "manual_bank", "stripe", "midtrans")
+
+  name: text('name').notNull(),
+  // Display name (e.g., "Bank Transfer", "Credit Card", "QRIS")
+
+  type: text('type').notNull(),
+  // 'manual' | 'automated'
+
+  provider: text('provider'),
+  // 'stripe' | 'midtrans' | 'xendit' | null (for manual)
+
+  config: text('config'),
+  // JSON configuration (account numbers, API keys, etc.)
+
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  // Whether this payment method is enabled globally
+
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+})
+
+// Product Payment Methods - Junction table for product-specific payment method configuration
+export const productPaymentMethods = sqliteTable('product_payment_methods', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+
+  productId: text('product_id')
+    .notNull()
+    .references(() => products.id, { onDelete: 'cascade' }),
+  // Which product this configuration belongs to
+
+  paymentMethodId: text('payment_method_id')
+    .notNull()
+    .references(() => paymentMethods.id, { onDelete: 'cascade' }),
+  // Which payment method is enabled
+
+  displayOrder: integer('display_order').notNull().default(0),
+  // Order in which payment methods appear in the UI
+
+  isDefault: integer('is_default', { mode: 'boolean' }).notNull().default(false),
+  // Whether this is the pre-selected payment method
+
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+})
+
 export const subscriptions = sqliteTable(
   'subscriptions',
   {
@@ -126,6 +182,9 @@ export const subscriptions = sqliteTable(
       .notNull()
       .references(() => products.id),
     // Which product this subscription is for
+
+    paymentMethodId: text('payment_method_id').references(() => paymentMethods.id),
+    // Which payment method was used (optional, for future tracking)
 
     status: text('status').notNull(),
     // active | pending_verification | past_due | canceled
@@ -178,10 +237,17 @@ export const selectSubscriptionSchema = createSelectSchema(subscriptions)
 export const insertAdminUserSchema = createInsertSchema(adminUsers)
 export const selectAdminUserSchema = createSelectSchema(adminUsers)
 
+export const insertPaymentMethodSchema = createInsertSchema(paymentMethods)
+export const selectPaymentMethodSchema = createSelectSchema(paymentMethods)
+
+export const insertProductPaymentMethodSchema = createInsertSchema(productPaymentMethods)
+export const selectProductPaymentMethodSchema = createSelectSchema(productPaymentMethods)
+
 // Drizzle Relations
 export const productsRelations = relations(products, ({ many }) => ({
   plans: many(plans),
   subscriptions: many(subscriptions),
+  productPaymentMethods: many(productPaymentMethods),
 }))
 
 export const plansRelations = relations(plans, ({ one, many }) => ({
@@ -197,4 +263,24 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
   user: one(users, { fields: [subscriptions.userId], references: [users.id] }),
   plan: one(plans, { fields: [subscriptions.planId], references: [plans.id] }),
   product: one(products, { fields: [subscriptions.productId], references: [products.id] }),
+  paymentMethod: one(paymentMethods, {
+    fields: [subscriptions.paymentMethodId],
+    references: [paymentMethods.id],
+  }),
+}))
+
+export const paymentMethodsRelations = relations(paymentMethods, ({ many }) => ({
+  productPaymentMethods: many(productPaymentMethods),
+  subscriptions: many(subscriptions),
+}))
+
+export const productPaymentMethodsRelations = relations(productPaymentMethods, ({ one }) => ({
+  product: one(products, {
+    fields: [productPaymentMethods.productId],
+    references: [products.id],
+  }),
+  paymentMethod: one(paymentMethods, {
+    fields: [productPaymentMethods.paymentMethodId],
+    references: [paymentMethods.id],
+  }),
 }))
